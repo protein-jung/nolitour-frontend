@@ -9,6 +9,12 @@ declare global {
   namespace naver.maps {
     class LatLng {
       constructor(lat: number, lng: number);
+      lat(): number;
+      lng(): number;
+    }
+
+    interface PointerEvent {
+      coord: LatLng;
     }
 
     class Map {
@@ -41,6 +47,7 @@ declare global {
         eventName: string,
         handler: (...args: unknown[]) => void,
       ): unknown;
+      function removeListener(listener: unknown): void;
     }
   }
 }
