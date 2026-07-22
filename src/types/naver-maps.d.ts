@@ -33,12 +33,14 @@ declare global {
     class Marker {
       constructor(options: MarkerOptions);
       setMap(map: Map | null): void;
+      getPosition(): LatLng;
     }
 
     interface MarkerOptions {
       position: LatLng;
       map?: Map;
       title?: string;
+      draggable?: boolean;
     }
 
     namespace Event {
@@ -48,6 +50,20 @@ declare global {
         handler: (...args: unknown[]) => void,
       ): unknown;
       function removeListener(listener: unknown): void;
+    }
+
+    // submodules=geocoder 로딩 시에만 사용 가능
+    namespace Service {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      function geocode(options: { query: string }, callback: (status: string, response: any) => void): void;
+      function reverseGeocode(
+        options: { coords: LatLng; orders?: string },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        callback: (status: string, response: any) => void,
+      ): void;
+
+      const Status: { OK: string; ERROR: string };
+      const OrderType: { ADDR: string; ROAD_ADDR: string };
     }
   }
 }

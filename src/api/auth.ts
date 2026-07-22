@@ -2,13 +2,14 @@ import { apiClient, clearToken, setToken } from "./client";
 import type { User } from "../types/user";
 
 export interface RegisterPayload {
-  email: string;
+  phone: string;
   password: string;
   name: string;
+  nickname: string;
 }
 
 export interface LoginPayload {
-  email: string;
+  phone: string;
   password: string;
 }
 

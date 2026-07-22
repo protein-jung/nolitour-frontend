@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function register(payload: RegisterPayload) {
     await registerUser(payload);
-    await login({ email: payload.email, password: payload.password });
+    await login({ phone: payload.phone, password: payload.password });
   }
 
   function logout() {

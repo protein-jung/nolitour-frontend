@@ -18,6 +18,8 @@ interface NaverMapProps {
   pinPosition?: LatLngLiteral | null;
   initialCenter?: LatLngLiteral;
   initialZoom?: number;
+  /** 지정하면 확대/축소·드래그·마커 클릭 시 onSelect 대신 이 콜백이 호출된다 (비로그인 사용자 로그인 유도용) */
+  onInteractionBlocked?: () => void;
 }
 
 export function NaverMap({
@@ -27,6 +29,7 @@ export function NaverMap({
   pinPosition,
   initialCenter = DEFAULT_CENTER,
   initialZoom = 7,
+  onInteractionBlocked,
 }: NaverMapProps) {
   const clientId = import.meta.env.VITE_NAVER_MAP_CLIENT_ID ?? "";
   const loaded = useNaverMapsScript(clientId);
@@ -58,11 +61,32 @@ export function NaverMap({
         title: playground.name,
       });
       if (onSelect) {
-        window.naver.maps.Event.addListener(marker, "click", () => onSelect(playground));
+        window.naver.maps.Event.addListener(marker, "click", () => {
+          if (onInteractionBlocked) {
+            onInteractionBlocked();
+            return;
+          }
+          onSelect(playground);
+        });
       }
       return marker;
     });
-  }, [loaded, playgrounds, onSelect]);
+  }, [loaded, playgrounds, onSelect, onInteractionBlocked]);
+
+  useEffect(() => {
+    if (!loaded || !mapRef.current || !onInteractionBlocked) return;
+
+    const zoomListener = window.naver.maps.Event.addListener(mapRef.current, "zoom_changed", () => {
+      onInteractionBlocked();
+    });
+    const dragListener = window.naver.maps.Event.addListener(mapRef.current, "dragstart", () => {
+      onInteractionBlocked();
+    });
+    return () => {
+      window.naver.maps.Event.removeListener(zoomListener);
+      window.naver.maps.Event.removeListener(dragListener);
+    };
+  }, [loaded, onInteractionBlocked]);
 
   useEffect(() => {
     if (!loaded || !mapRef.current || !onMapClick) return;
@@ -82,11 +106,22 @@ export function NaverMap({
     pinMarkerRef.current?.setMap(null);
     pinMarkerRef.current = null;
     if (pinPosition) {
-      pinMarkerRef.current = new window.naver.maps.Marker({
-        position: new window.naver.maps.LatLng(pinPosition.lat, pinPosition.lng),
+      const latLng = new window.naver.maps.LatLng(pinPosition.lat, pinPosition.lng);
+      const marker = new window.naver.maps.Marker({
+        position: latLng,
         map: mapRef.current,
+        draggable: Boolean(onMapClick),
       });
+      if (onMapClick) {
+        window.naver.maps.Event.addListener(marker, "dragend", () => {
+          const dragged = marker.getPosition();
+          onMapClick({ lat: dragged.lat(), lng: dragged.lng() });
+        });
+      }
+      pinMarkerRef.current = marker;
+      mapRef.current.setCenter(latLng);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, pinPosition]);
 
   if (!clientId) {
