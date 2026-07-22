@@ -55,3 +55,24 @@ export async function setUserAdminRole(userId: string, isAdmin: boolean): Promis
   });
   return data;
 }
+
+export interface UserActivityComment {
+  id: string;
+  content: string;
+  rating: number | null;
+  created_at: string;
+  playground_id: string;
+  playground_name: string;
+}
+
+export interface UserActivity {
+  user: AdminUser;
+  submitted_playgrounds: Playground[];
+  comments: UserActivityComment[];
+  liked_playgrounds: Playground[];
+}
+
+export async function fetchUserActivity(userId: string): Promise<UserActivity> {
+  const { data } = await apiClient.get<UserActivity>(`/admin/users/${userId}/activity`);
+  return data;
+}

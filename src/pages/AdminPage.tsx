@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   deletePlaygroundAdmin,
@@ -289,9 +289,9 @@ export function AdminPage() {
                 borderBottom: `1px solid ${colors.creamDeep}`,
               }}
             >
-              <span>
-                {u.nickname} <span style={{ color: colors.textMuted, fontSize: 12 }}>({u.name})</span>
-              </span>
+              <Link to={`/admin/users/${u.id}`} style={{ color: colors.greenDark, fontWeight: 600 }}>
+                {u.nickname} <span style={{ color: colors.textMuted, fontSize: 12, fontWeight: 400 }}>({u.name})</span>
+              </Link>
               <span style={{ color: colors.textMuted }}>{u.phone}</span>
               <span>{u.playground_count}건</span>
               <span style={{ color: colors.textMuted }}>{new Date(u.created_at).toLocaleDateString()}</span>
