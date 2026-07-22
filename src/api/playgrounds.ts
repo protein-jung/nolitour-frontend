@@ -7,6 +7,7 @@ import type {
   PlaygroundComment,
   PlaygroundCreate,
   PlaygroundImage,
+  RiskTag,
 } from "../types/playground";
 
 export interface BoundingBox {
@@ -91,13 +92,21 @@ export async function fetchComments(playgroundId: string): Promise<PlaygroundCom
   return data;
 }
 
+export interface CreateCommentPayload {
+  content: string;
+  rating?: number | null;
+  recommended_ages?: AgeGroup[] | null;
+  risk_tags?: RiskTag[] | null;
+}
+
 export async function createComment(
   playgroundId: string,
-  content: string,
+  payload: CreateCommentPayload,
 ): Promise<PlaygroundComment> {
-  const { data } = await apiClient.post<PlaygroundComment>(`/playgrounds/${playgroundId}/comments`, {
-    content,
-  });
+  const { data } = await apiClient.post<PlaygroundComment>(
+    `/playgrounds/${playgroundId}/comments`,
+    payload,
+  );
   return data;
 }
 

@@ -136,16 +136,38 @@ export interface Playground {
   like_count: number | null;
   liked_by_me: boolean | null;
   comment_count: number | null;
+  average_rating: number | null;
+  rating_count: number | null;
 }
 
 export type PlaygroundCreate = Omit<
   Playground,
-  "id" | "source" | "is_verified" | "images" | "like_count" | "liked_by_me" | "comment_count"
+  | "id"
+  | "source"
+  | "is_verified"
+  | "images"
+  | "like_count"
+  | "liked_by_me"
+  | "comment_count"
+  | "average_rating"
+  | "rating_count"
 >;
+
+// 후기 위험도 태그 (부모 제보)
+export type RiskTag = "near_road" | "many_bugs" | "poorly_maintained";
+
+export const RISK_TAG_LABEL: Record<RiskTag, string> = {
+  near_road: "도로 인접",
+  many_bugs: "벌레 많음",
+  poorly_maintained: "관리 부족",
+};
 
 export interface PlaygroundComment {
   id: string;
   content: string;
+  rating: number | null;
+  recommended_ages: AgeGroup[] | null;
+  risk_tags: RiskTag[] | null;
   created_at: string;
   author_nickname: string;
   author_id: string;

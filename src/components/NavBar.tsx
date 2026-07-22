@@ -56,6 +56,11 @@ export function NavBar() {
             <Link to="/mypage" style={navLinkStyle}>
               마이페이지
             </Link>
+            {user.is_admin && (
+              <Link to="/admin" style={navLinkStyle}>
+                🛠 관리자
+              </Link>
+            )}
             <span style={{ color: colors.textMuted, fontSize: 14 }}>{user.nickname}님</span>
             <button
               type="button"

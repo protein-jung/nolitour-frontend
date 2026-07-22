@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { NaverMap } from "../components/NaverMap";
+import { NaverMap, type LatLngLiteral } from "../components/NaverMap";
 import {
   createComment,
   deleteComment,
@@ -10,7 +10,7 @@ import {
   likePlayground,
   unlikePlayground,
 } from "../api/playgrounds";
-import type { AgeGroup, EquipmentType, Playground, PlaygroundComment } from "../types/playground";
+import type { AgeGroup, EquipmentType, Playground, PlaygroundComment, RiskTag } from "../types/playground";
 import { NAVBAR_HEIGHT } from "../components/NavBar";
 import { colors, primaryButtonStyle, radius, shadow } from "../styles/theme";
 import {
@@ -20,21 +20,51 @@ import {
   PARKING_LABEL,
   PLAYGROUND_TYPE_LABEL,
   RESTROOM_LABEL,
+  RISK_TAG_LABEL,
   SHADE_LEVEL_LABEL,
   SURFACE_TYPE_LABEL,
 } from "../types/playground";
 import { useAuth } from "../context/AuthContext";
 
 const AGE_GROUPS = Object.keys(AGE_GROUP_LABEL) as AgeGroup[];
+const RISK_TAGS = Object.keys(RISK_TAG_LABEL) as RiskTag[];
+
+const NATIONAL_CENTER: LatLngLiteral = { lat: 36.5, lng: 127.8 };
+const NATIONAL_ZOOM = 7;
+const NEARBY_ZOOM = 14;
 
 export function MapPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [mapReady, setMapReady] = useState(false);
+  const [initialCenter, setInitialCenter] = useState<LatLngLiteral>(NATIONAL_CENTER);
+  const [initialZoom, setInitialZoom] = useState(NATIONAL_ZOOM);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setMapReady(true);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setInitialCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setInitialZoom(NEARBY_ZOOM);
+        setMapReady(true);
+      },
+      () => setMapReady(true),
+      { timeout: 5000, maximumAge: 60000 },
+    );
+  }, []);
+
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([]);
   const [selected, setSelected] = useState<Playground | null>(null);
   const [comments, setComments] = useState<PlaygroundComment[]>([]);
   const [commentText, setCommentText] = useState("");
+  const [commentRating, setCommentRating] = useState(0);
+  const [commentAges, setCommentAges] = useState<AgeGroup[]>([]);
+  const [commentRisks, setCommentRisks] = useState<RiskTag[]>([]);
+  const [showReviewExtras, setShowReviewExtras] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [filterOpen, setFilterOpen] = useState(false);
@@ -73,7 +103,19 @@ export function MapPage() {
     fetchPlayground(playground.id).then(setSelected);
     fetchComments(playground.id).then(setComments);
     setCommentText("");
+    setCommentRating(0);
+    setCommentAges([]);
+    setCommentRisks([]);
+    setShowReviewExtras(false);
   }, []);
+
+  function toggleCommentAge(ag: AgeGroup) {
+    setCommentAges((prev) => (prev.includes(ag) ? prev.filter((v) => v !== ag) : [...prev, ag]));
+  }
+
+  function toggleCommentRisk(risk: RiskTag) {
+    setCommentRisks((prev) => (prev.includes(risk) ? prev.filter((v) => v !== risk) : [...prev, risk]));
+  }
 
   const handleInteractionBlocked = useCallback(() => {
     navigate("/login");
@@ -90,10 +132,20 @@ export function MapPage() {
   async function submitComment(e: FormEvent) {
     e.preventDefault();
     if (!selected || !commentText.trim()) return;
-    const comment = await createComment(selected.id, commentText.trim());
+    const comment = await createComment(selected.id, {
+      content: commentText.trim(),
+      rating: commentRating > 0 ? commentRating : null,
+      recommended_ages: commentAges.length ? commentAges : null,
+      risk_tags: commentRisks.length ? commentRisks : null,
+    });
     setComments((prev) => [...prev, comment]);
     setCommentText("");
-    setSelected({ ...selected, comment_count: (selected.comment_count ?? 0) + 1 });
+    setCommentRating(0);
+    setCommentAges([]);
+    setCommentRisks([]);
+    setShowReviewExtras(false);
+    const updated = await fetchPlayground(selected.id);
+    setSelected(updated);
   }
 
   async function removeComment(commentId: string) {
@@ -206,11 +258,15 @@ export function MapPage() {
             둘러보기만 가능해요. 확대/이동하거나 놀이터를 선택하려면 로그인해주세요.
           </div>
         )}
-        <NaverMap
-          playgrounds={playgrounds}
-          onSelect={handleSelect}
-          onInteractionBlocked={user ? undefined : handleInteractionBlocked}
-        />
+        {mapReady && (
+          <NaverMap
+            playgrounds={playgrounds}
+            onSelect={handleSelect}
+            onInteractionBlocked={user ? undefined : handleInteractionBlocked}
+            initialCenter={initialCenter}
+            initialZoom={initialZoom}
+          />
+        )}
       </div>
       {selected && (
         <aside
@@ -222,7 +278,15 @@ export function MapPage() {
             borderLeft: `3px solid ${colors.creamDeep}`,
           }}
         >
-          <h2>{selected.name}</h2>
+          <h2 style={{ marginBottom: 4 }}>{selected.name}</h2>
+          {selected.rating_count ? (
+            <p style={{ margin: "0 0 10px", fontSize: 14, color: colors.brown }}>
+              <StarDisplay rating={selected.average_rating ?? 0} /> {selected.average_rating?.toFixed(1)}{" "}
+              <span style={{ color: colors.textMuted }}>({selected.rating_count}명)</span>
+            </p>
+          ) : (
+            <p style={{ margin: "0 0 10px", fontSize: 13, color: colors.textMuted }}>아직 별점 후기가 없어요.</p>
+          )}
           {selected.images.length > 0 && (
             <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 12 }}>
               {selected.images.map((img) => (
@@ -315,7 +379,7 @@ export function MapPage() {
 
           <hr style={{ border: "none", borderTop: `2px solid ${colors.creamDeep}`, margin: "16px 0" }} />
 
-          <h3 style={{ fontSize: 15 }}>댓글 {selected.comment_count ?? comments.length}</h3>
+          <h3 style={{ fontSize: 15 }}>댓글·후기 {selected.comment_count ?? comments.length}</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 12 }}>
             {comments.map((c) => (
               <div key={c.id} style={{ background: colors.cream, borderRadius: radius.sm, padding: 10 }}>
@@ -331,7 +395,27 @@ export function MapPage() {
                     </button>
                   )}
                 </div>
+                {c.rating && (
+                  <p style={{ margin: "2px 0 0", fontSize: 13 }}>
+                    <StarDisplay rating={c.rating} />
+                  </p>
+                )}
                 <p style={{ margin: "4px 0 0", fontSize: 14 }}>{c.content}</p>
+                {((c.recommended_ages && c.recommended_ages.length > 0) ||
+                  (c.risk_tags && c.risk_tags.length > 0)) && (
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>
+                    {c.recommended_ages?.map((ag) => (
+                      <Tag key={ag} color={colors.blue}>
+                        {AGE_GROUP_LABEL[ag]}
+                      </Tag>
+                    ))}
+                    {c.risk_tags?.map((risk) => (
+                      <Tag key={risk} color={colors.pink}>
+                        ⚠ {RISK_TAG_LABEL[risk]}
+                      </Tag>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             {comments.length === 0 && (
@@ -340,22 +424,69 @@ export function MapPage() {
           </div>
 
           {user ? (
-            <form onSubmit={submitComment} style={{ display: "flex", gap: 8 }}>
-              <input
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="댓글을 남겨보세요"
+            <form onSubmit={submitComment} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <StarPicker rating={commentRating} onChange={setCommentRating} />
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="댓글이나 후기를 남겨보세요"
+                  style={{
+                    flex: 1,
+                    padding: "8px 12px",
+                    borderRadius: radius.pill,
+                    border: `2px solid ${colors.creamDeep}`,
+                    fontSize: 13,
+                  }}
+                />
+                <button type="submit" style={{ ...primaryButtonStyle(), padding: "8px 18px", fontSize: 13 }}>
+                  등록
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowReviewExtras((v) => !v)}
                 style={{
-                  flex: 1,
-                  padding: "8px 12px",
-                  borderRadius: radius.pill,
-                  border: `2px solid ${colors.creamDeep}`,
-                  fontSize: 13,
+                  alignSelf: "flex-start",
+                  border: "none",
+                  background: "transparent",
+                  color: colors.textMuted,
+                  fontSize: 12,
+                  cursor: "pointer",
+                  padding: 0,
                 }}
-              />
-              <button type="submit" style={{ ...primaryButtonStyle(), padding: "8px 18px", fontSize: 13 }}>
-                등록
+              >
+                {showReviewExtras ? "▲ 상세 정보 접기" : "▼ 연령 추천 · 주의사항 추가"}
               </button>
+
+              {showReviewExtras && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, background: colors.cream, borderRadius: radius.sm, padding: 10 }}>
+                  <div>
+                    <p style={{ fontSize: 11, color: colors.textMuted, margin: "0 0 4px" }}>이 연령대에 추천해요</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {AGE_GROUPS.map((ag) => (
+                        <label key={ag} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+                          <input type="checkbox" checked={commentAges.includes(ag)} onChange={() => toggleCommentAge(ag)} />
+                          {AGE_GROUP_LABEL[ag]}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: colors.textMuted, margin: "0 0 4px" }}>주의할 점이 있어요</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {RISK_TAGS.map((risk) => (
+                        <label key={risk} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+                          <input type="checkbox" checked={commentRisks.includes(risk)} onChange={() => toggleCommentRisk(risk)} />
+                          {RISK_TAG_LABEL[risk]}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </form>
           ) : (
             <p style={{ color: colors.textMuted, fontSize: 13 }}>댓글을 남기려면 로그인해주세요.</p>
@@ -393,5 +524,44 @@ function Tag({ children, color }: { children: ReactNode; color: string }) {
     >
       {children}
     </span>
+  );
+}
+
+function StarDisplay({ rating }: { rating: number }) {
+  const rounded = Math.round(rating);
+  return (
+    <span style={{ color: colors.yellow, letterSpacing: 1 }}>
+      {"★".repeat(rounded)}
+      <span style={{ color: colors.creamDeep }}>{"★".repeat(Math.max(0, 5 - rounded))}</span>
+    </span>
+  );
+}
+
+function StarPicker({ rating, onChange }: { rating: number; onChange: (value: number) => void }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(rating === n ? 0 : n)}
+          style={{
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            fontSize: 20,
+            padding: 0,
+            color: n <= rating ? colors.yellow : colors.creamDeep,
+            lineHeight: 1,
+          }}
+          aria-label={`${n}점`}
+        >
+          ★
+        </button>
+      ))}
+      <span style={{ fontSize: 12, color: colors.textMuted }}>
+        {rating > 0 ? `${rating}점 (선택 안 함으로 취소)` : "별점 (선택)"}
+      </span>
+    </div>
   );
 }

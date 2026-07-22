@@ -3,4 +3,5 @@ export interface User {
   phone: string;
   name: string;
   nickname: string;
+  is_admin: boolean;
 }
