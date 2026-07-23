@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { NavBar } from "./components/NavBar";
-import { HomePage } from "./pages/HomePage";
+import { FeedPage } from "./pages/FeedPage";
 import { MapPage } from "./pages/MapPage";
 import { ReportPage } from "./pages/ReportPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -16,7 +16,7 @@ function App() {
       <BrowserRouter>
         <NavBar />
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<FeedPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/report" element={<ReportPage />} />
           <Route path="/login" element={<LoginPage />} />

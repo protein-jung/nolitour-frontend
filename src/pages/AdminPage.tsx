@@ -195,9 +195,9 @@ export function AdminPage() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 40 }}>
           {visiblePlaygrounds?.map((p) => (
-            <div key={p.id} style={{ ...cardStyle(), padding: 18, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div key={p.id} style={{ ...cardStyle(), padding: 18, display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <h3 style={{ margin: 0, fontSize: 16 }}>{p.name}</h3>
                   <span
                     style={{
@@ -269,54 +269,56 @@ export function AdminPage() {
         <h2>회원 관리</h2>
         {users === null && <p style={{ color: colors.textMuted }}>불러오는 중...</p>}
 
-        <div style={{ ...cardStyle(), overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 0.8fr 1fr 0.8fr", padding: "10px 18px", fontSize: 12, color: colors.textMuted, borderBottom: `2px solid ${colors.creamDeep}` }}>
-            <span>닉네임 / 이름</span>
-            <span>휴대폰</span>
-            <span>제보 수</span>
-            <span>가입일</span>
-            <span>권한</span>
-          </div>
-          {users?.map((u) => (
-            <div
-              key={u.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1.2fr 1fr 0.8fr 1fr 0.8fr",
-                padding: "12px 18px",
-                fontSize: 14,
-                alignItems: "center",
-                borderBottom: `1px solid ${colors.creamDeep}`,
-              }}
-            >
-              <Link to={`/admin/users/${u.id}`} style={{ color: colors.greenDark, fontWeight: 600 }}>
-                {u.nickname} <span style={{ color: colors.textMuted, fontSize: 12, fontWeight: 400 }}>({u.name})</span>
-              </Link>
-              <span style={{ color: colors.textMuted }}>{u.phone}</span>
-              <span>{u.playground_count}건</span>
-              <span style={{ color: colors.textMuted }}>{new Date(u.created_at).toLocaleDateString()}</span>
-              <button
-                type="button"
-                onClick={() => handleToggleUserAdmin(u)}
-                disabled={busyId === u.id || u.id === user.id}
-                title={u.id === user.id ? "자기 자신의 권한은 변경할 수 없어요" : undefined}
+        <div className="admin-table-scroll" style={{ ...cardStyle(), overflow: "hidden" }}>
+          <div>
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 0.8fr 1fr 0.8fr", padding: "10px 18px", fontSize: 12, color: colors.textMuted, borderBottom: `2px solid ${colors.creamDeep}` }}>
+              <span>닉네임 / 이름</span>
+              <span>휴대폰</span>
+              <span>제보 수</span>
+              <span>가입일</span>
+              <span>권한</span>
+            </div>
+            {users?.map((u) => (
+              <div
+                key={u.id}
                 style={{
-                  border: "none",
-                  borderRadius: radius.pill,
-                  padding: "6px 12px",
-                  fontSize: 12,
-                  fontFamily: "'Jua', sans-serif",
-                  cursor: u.id === user.id ? "default" : "pointer",
-                  background: u.is_admin ? colors.blue : colors.cream,
-                  color: u.is_admin ? "#fff" : colors.brown,
-                  opacity: u.id === user.id ? 0.5 : 1,
-                  justifySelf: "start",
+                  display: "grid",
+                  gridTemplateColumns: "1.2fr 1fr 0.8fr 1fr 0.8fr",
+                  padding: "12px 18px",
+                  fontSize: 14,
+                  alignItems: "center",
+                  borderBottom: `1px solid ${colors.creamDeep}`,
                 }}
               >
-                {u.is_admin ? "관리자" : "일반"}
-              </button>
-            </div>
-          ))}
+                <Link to={`/admin/users/${u.id}`} style={{ color: colors.greenDark, fontWeight: 600 }}>
+                  {u.nickname} <span style={{ color: colors.textMuted, fontSize: 12, fontWeight: 400 }}>({u.name})</span>
+                </Link>
+                <span style={{ color: colors.textMuted }}>{u.phone}</span>
+                <span>{u.playground_count}건</span>
+                <span style={{ color: colors.textMuted }}>{new Date(u.created_at).toLocaleDateString()}</span>
+                <button
+                  type="button"
+                  onClick={() => handleToggleUserAdmin(u)}
+                  disabled={busyId === u.id || u.id === user.id}
+                  title={u.id === user.id ? "자기 자신의 권한은 변경할 수 없어요" : undefined}
+                  style={{
+                    border: "none",
+                    borderRadius: radius.pill,
+                    padding: "6px 12px",
+                    fontSize: 12,
+                    fontFamily: "'Jua', sans-serif",
+                    cursor: u.id === user.id ? "default" : "pointer",
+                    background: u.is_admin ? colors.blue : colors.cream,
+                    color: u.is_admin ? "#fff" : colors.brown,
+                    opacity: u.id === user.id ? 0.5 : 1,
+                    justifySelf: "start",
+                  }}
+                >
+                  {u.is_admin ? "관리자" : "일반"}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

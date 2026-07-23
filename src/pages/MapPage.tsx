@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { NaverMap, type LatLngLiteral } from "../components/NaverMap";
 import {
   createComment,
@@ -9,6 +9,7 @@ import {
   fetchPlaygrounds,
   likePlayground,
   unlikePlayground,
+  uploadCommentImage,
 } from "../api/playgrounds";
 import type { AgeGroup, EquipmentType, Playground, PlaygroundComment, RiskTag } from "../types/playground";
 import { NAVBAR_HEIGHT } from "../components/NavBar";
@@ -25,6 +26,10 @@ import {
   SURFACE_TYPE_LABEL,
 } from "../types/playground";
 import { useAuth } from "../context/AuthContext";
+import { Tag, StarDisplay } from "../components/Shared";
+import { FeedMapToggle } from "../components/FeedMapToggle";
+
+const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
 
 const AGE_GROUPS = Object.keys(AGE_GROUP_LABEL) as AgeGroup[];
 const RISK_TAGS = Object.keys(RISK_TAG_LABEL) as RiskTag[];
@@ -36,12 +41,15 @@ const NEARBY_ZOOM = 14;
 export function MapPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const deepLinkPlaygroundId = searchParams.get("playground");
 
   const [mapReady, setMapReady] = useState(false);
   const [initialCenter, setInitialCenter] = useState<LatLngLiteral>(NATIONAL_CENTER);
   const [initialZoom, setInitialZoom] = useState(NATIONAL_ZOOM);
 
   useEffect(() => {
+    if (deepLinkPlaygroundId) return;
     if (!navigator.geolocation) {
       setMapReady(true);
       return;
@@ -55,7 +63,7 @@ export function MapPage() {
       () => setMapReady(true),
       { timeout: 5000, maximumAge: 60000 },
     );
-  }, []);
+  }, [deepLinkPlaygroundId]);
 
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([]);
   const [selected, setSelected] = useState<Playground | null>(null);
@@ -64,8 +72,20 @@ export function MapPage() {
   const [commentRating, setCommentRating] = useState(0);
   const [commentAges, setCommentAges] = useState<AgeGroup[]>([]);
   const [commentRisks, setCommentRisks] = useState<RiskTag[]>([]);
+  const [commentPhotos, setCommentPhotos] = useState<File[]>([]);
   const [showReviewExtras, setShowReviewExtras] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!deepLinkPlaygroundId) return;
+    fetchPlayground(deepLinkPlaygroundId).then((p) => {
+      setSelected(p);
+      setInitialCenter({ lat: p.latitude, lng: p.longitude });
+      setInitialZoom(NEARBY_ZOOM);
+      setMapReady(true);
+    });
+    fetchComments(deepLinkPlaygroundId).then(setComments);
+  }, [deepLinkPlaygroundId]);
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterAgeGroups, setFilterAgeGroups] = useState<AgeGroup[]>([]);
@@ -106,6 +126,7 @@ export function MapPage() {
     setCommentRating(0);
     setCommentAges([]);
     setCommentRisks([]);
+    setCommentPhotos([]);
     setShowReviewExtras(false);
   }, []);
 
@@ -132,17 +153,24 @@ export function MapPage() {
   async function submitComment(e: FormEvent) {
     e.preventDefault();
     if (!selected || !commentText.trim()) return;
-    const comment = await createComment(selected.id, {
+    let comment = await createComment(selected.id, {
       content: commentText.trim(),
       rating: commentRating > 0 ? commentRating : null,
       recommended_ages: commentAges.length ? commentAges : null,
       risk_tags: commentRisks.length ? commentRisks : null,
     });
+    if (commentPhotos.length > 0) {
+      const images = await Promise.all(
+        commentPhotos.map((file) => uploadCommentImage(selected.id, comment.id, file)),
+      );
+      comment = { ...comment, images };
+    }
     setComments((prev) => [...prev, comment]);
     setCommentText("");
     setCommentRating(0);
     setCommentAges([]);
     setCommentRisks([]);
+    setCommentPhotos([]);
     setShowReviewExtras(false);
     const updated = await fetchPlayground(selected.id);
     setSelected(updated);
@@ -155,12 +183,10 @@ export function MapPage() {
     setSelected({ ...selected, comment_count: Math.max(0, (selected.comment_count ?? 1) - 1) });
   }
 
-  const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
-
   return (
-    <div style={{ display: "flex", height: `calc(100vh - ${NAVBAR_HEIGHT}px)` }}>
-      <div style={{ flex: 1, position: "relative" }}>
-        <div style={{ position: "absolute", top: 12, left: 12, zIndex: 1, display: "flex", flexDirection: "column", gap: 8, maxWidth: 260 }}>
+    <div className="map-layout" style={{ display: "flex", height: `calc(100vh - ${NAVBAR_HEIGHT}px)` }}>
+      <div className="map-canvas-wrap" style={{ flex: 1, position: "relative" }}>
+        <div className="map-filter-wrap" style={{ position: "absolute", top: 12, left: 12, zIndex: 1, display: "flex", flexDirection: "column", gap: 8, maxWidth: 260 }}>
           {error && (
             <div
               style={{
@@ -240,11 +266,16 @@ export function MapPage() {
           </div>
         </div>
 
+        <div className="map-toggle-wrap" style={{ position: "absolute", top: 12, right: 12, zIndex: 1 }}>
+          <FeedMapToggle active="map" />
+        </div>
+
         {!user && (
           <div
+            className="map-guest-banner"
             style={{
               position: "absolute",
-              top: 12,
+              top: 64,
               right: 12,
               zIndex: 1,
               background: "#fff",
@@ -253,6 +284,7 @@ export function MapPage() {
               boxShadow: shadow,
               fontSize: 13,
               color: colors.brown,
+              maxWidth: 240,
             }}
           >
             둘러보기만 가능해요. 확대/이동하거나 놀이터를 선택하려면 로그인해주세요.
@@ -270,6 +302,7 @@ export function MapPage() {
       </div>
       {selected && (
         <aside
+          className="map-aside"
           style={{
             width: 340,
             padding: 20,
@@ -401,6 +434,18 @@ export function MapPage() {
                   </p>
                 )}
                 <p style={{ margin: "4px 0 0", fontSize: 14 }}>{c.content}</p>
+                {c.images.length > 0 && (
+                  <div style={{ display: "flex", gap: 6, overflowX: "auto", marginTop: 6 }}>
+                    {c.images.map((img) => (
+                      <img
+                        key={img.id}
+                        src={`${apiBase}${img.image_url}`}
+                        alt=""
+                        style={{ width: 72, height: 72, objectFit: "cover", borderRadius: radius.sm, flexShrink: 0 }}
+                      />
+                    ))}
+                  </div>
+                )}
                 {((c.recommended_ages && c.recommended_ages.length > 0) ||
                   (c.risk_tags && c.risk_tags.length > 0)) && (
                   <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>
@@ -444,6 +489,17 @@ export function MapPage() {
                   등록
                 </button>
               </div>
+
+              <label style={{ fontSize: 12, color: colors.textMuted, cursor: "pointer" }}>
+                📷 사진 추가{commentPhotos.length > 0 && ` (${commentPhotos.length}장 선택됨)`}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => setCommentPhotos(Array.from(e.target.files ?? []))}
+                  style={{ display: "none" }}
+                />
+              </label>
 
               <button
                 type="button"
@@ -508,32 +564,6 @@ function hasSafetyInfo(p: Playground): boolean {
       p.has_cctv ||
       p.stroller_accessible ||
       p.wheelchair_accessible,
-  );
-}
-
-function Tag({ children, color }: { children: ReactNode; color: string }) {
-  return (
-    <span
-      style={{
-        background: color,
-        color: "#fff",
-        fontSize: 12,
-        padding: "3px 10px",
-        borderRadius: radius.pill,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function StarDisplay({ rating }: { rating: number }) {
-  const rounded = Math.round(rating);
-  return (
-    <span style={{ color: colors.yellow, letterSpacing: 1 }}>
-      {"★".repeat(rounded)}
-      <span style={{ color: colors.creamDeep }}>{"★".repeat(Math.max(0, 5 - rounded))}</span>
-    </span>
   );
 }
 

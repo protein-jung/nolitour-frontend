@@ -162,6 +162,11 @@ export const RISK_TAG_LABEL: Record<RiskTag, string> = {
   poorly_maintained: "관리 부족",
 };
 
+export interface CommentImage {
+  id: string;
+  image_url: string;
+}
+
 export interface PlaygroundComment {
   id: string;
   content: string;
@@ -171,9 +176,27 @@ export interface PlaygroundComment {
   created_at: string;
   author_nickname: string;
   author_id: string;
+  images: CommentImage[];
 }
 
 export interface LikeStatus {
   like_count: number;
   liked_by_me: boolean;
+}
+
+export interface FeedItem {
+  id: string;
+  content: string;
+  rating: number | null;
+  recommended_ages: AgeGroup[] | null;
+  risk_tags: RiskTag[] | null;
+  created_at: string;
+  author_nickname: string;
+  author_id: string;
+  images: CommentImage[];
+  playground_id: string;
+  playground_name: string;
+  playground_address: string;
+  playground_latitude: number;
+  playground_longitude: number;
 }

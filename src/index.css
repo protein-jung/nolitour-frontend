@@ -71,3 +71,76 @@ textarea,
 select {
   font-family: var(--sans);
 }
+
+.navbar-toggle {
+  display: none;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-mobile-menu {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .navbar-toggle {
+    display: flex !important;
+  }
+
+  .navbar-links {
+    display: none !important;
+  }
+
+  .navbar-mobile-menu.open {
+    display: flex !important;
+  }
+
+  .map-layout {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: calc(100svh - 64px);
+  }
+
+  .map-canvas-wrap {
+    flex: none !important;
+    height: 62vh !important;
+  }
+
+  .map-toggle-wrap {
+    position: static !important;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+    background: #fff;
+    border-bottom: 3px solid var(--cream-deep);
+  }
+
+  .map-filter-wrap {
+    max-width: 190px !important;
+    top: 56px !important;
+  }
+
+  .map-guest-banner {
+    top: 56px !important;
+    max-width: 180px !important;
+  }
+
+  .map-aside {
+    width: 100% !important;
+    max-height: none !important;
+    border-left: none !important;
+    border-top: 3px solid var(--cream-deep);
+  }
+
+  .admin-table-scroll {
+    overflow-x: auto;
+  }
+
+  .admin-table-scroll > * {
+    min-width: 560px;
+  }
+}

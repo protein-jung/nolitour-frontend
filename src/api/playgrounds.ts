@@ -1,6 +1,7 @@
 import { apiClient } from "./client";
 import type {
   AgeGroup,
+  CommentImage,
   EquipmentType,
   LikeStatus,
   Playground,
@@ -112,4 +113,19 @@ export async function createComment(
 
 export async function deleteComment(playgroundId: string, commentId: string): Promise<void> {
   await apiClient.delete(`/playgrounds/${playgroundId}/comments/${commentId}`);
+}
+
+export async function uploadCommentImage(
+  playgroundId: string,
+  commentId: string,
+  file: File,
+): Promise<CommentImage> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await apiClient.post<CommentImage>(
+    `/playgrounds/${playgroundId}/comments/${commentId}/images`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+  return data;
 }
