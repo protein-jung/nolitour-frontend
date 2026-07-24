@@ -138,6 +138,8 @@ export interface Playground {
   comment_count: number | null;
   average_rating: number | null;
   rating_count: number | null;
+  // 로그인한 사용자가 후기를 남긴 적 있는지 (목록·단건 조회 모두 채워짐, 퀘스트 완료 마커 표시용)
+  reviewed_by_me: boolean;
 }
 
 export type PlaygroundCreate = Omit<
@@ -151,6 +153,7 @@ export type PlaygroundCreate = Omit<
   | "comment_count"
   | "average_rating"
   | "rating_count"
+  | "reviewed_by_me"
 >;
 
 // 후기 위험도 태그 (부모 제보)

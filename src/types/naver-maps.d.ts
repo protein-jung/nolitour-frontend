@@ -36,11 +36,26 @@ declare global {
       getPosition(): LatLng;
     }
 
+    class Size {
+      constructor(width: number, height: number);
+    }
+
+    class Point {
+      constructor(x: number, y: number);
+    }
+
+    interface HtmlIcon {
+      content: string;
+      size?: Size;
+      anchor?: Point;
+    }
+
     interface MarkerOptions {
       position: LatLng;
       map?: Map;
       title?: string;
       draggable?: boolean;
+      icon?: HtmlIcon;
     }
 
     namespace Event {

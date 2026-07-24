@@ -36,7 +36,7 @@ const RISK_TAGS = Object.keys(RISK_TAG_LABEL) as RiskTag[];
 
 const NATIONAL_CENTER: LatLngLiteral = { lat: 36.5, lng: 127.8 };
 const NATIONAL_ZOOM = 7;
-const NEARBY_ZOOM = 14;
+const NEARBY_ZOOM = 17;
 
 export function MapPage() {
   const { user } = useAuth();
@@ -47,6 +47,7 @@ export function MapPage() {
   const [mapReady, setMapReady] = useState(false);
   const [initialCenter, setInitialCenter] = useState<LatLngLiteral>(NATIONAL_CENTER);
   const [initialZoom, setInitialZoom] = useState(NATIONAL_ZOOM);
+  const [myLocation, setMyLocation] = useState<LatLngLiteral | null>(null);
 
   useEffect(() => {
     if (deepLinkPlaygroundId) return;
@@ -56,8 +57,10 @@ export function MapPage() {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setInitialCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setInitialCenter(here);
         setInitialZoom(NEARBY_ZOOM);
+        setMyLocation(here);
         setMapReady(true);
       },
       () => setMapReady(true),
@@ -129,6 +132,8 @@ export function MapPage() {
     setCommentPhotos([]);
     setShowReviewExtras(false);
   }, []);
+
+  const closeDetail = useCallback(() => setSelected(null), []);
 
   function toggleCommentAge(ag: AgeGroup) {
     setCommentAges((prev) => (prev.includes(ag) ? prev.filter((v) => v !== ag) : [...prev, ag]));
@@ -297,9 +302,30 @@ export function MapPage() {
             onInteractionBlocked={user ? undefined : handleInteractionBlocked}
             initialCenter={initialCenter}
             initialZoom={initialZoom}
+            currentLocation={myLocation}
           />
         )}
+
+        {user && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: 16,
+              left: 12,
+              zIndex: 1,
+              background: "#fff",
+              padding: "6px 12px",
+              borderRadius: radius.pill,
+              boxShadow: shadow,
+              fontSize: 12,
+              color: colors.brown,
+            }}
+          >
+            🏆 후기를 남긴 놀이터예요
+          </div>
+        )}
       </div>
+      {selected && <div className="map-aside-backdrop" onClick={closeDetail} />}
       {selected && (
         <aside
           className="map-aside"
@@ -311,6 +337,10 @@ export function MapPage() {
             borderLeft: `3px solid ${colors.creamDeep}`,
           }}
         >
+          <div className="map-aside-handle" />
+          <button type="button" className="map-aside-close" onClick={closeDetail} aria-label="닫기">
+            ✕
+          </button>
           <h2 style={{ marginBottom: 4 }}>{selected.name}</h2>
           {selected.rating_count ? (
             <p style={{ margin: "0 0 10px", fontSize: 14, color: colors.brown }}>
