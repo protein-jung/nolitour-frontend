@@ -26,3 +26,31 @@ export function StarDisplay({ rating }: { rating: number }) {
     </span>
   );
 }
+
+export function VisitStamp({ nickname, size = "md" }: { nickname: string; size?: "sm" | "md" }) {
+  const dimension = size === "sm" ? 52 : 68;
+  const fontSize = size === "sm" ? 10 : 12;
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        width: dimension,
+        height: dimension,
+        borderRadius: "50%",
+        border: `2px solid ${colors.pink}`,
+        color: colors.pink,
+        transform: "rotate(-12deg)",
+        fontFamily: "'Jua', sans-serif",
+        lineHeight: 1.3,
+        textAlign: "center",
+        flexShrink: 0,
+      }}
+    >
+      <span style={{ fontSize, wordBreak: "keep-all", padding: "0 4px" }}>{nickname}</span>
+      <span style={{ fontSize: fontSize + 1 }}>왔다감</span>
+    </div>
+  );
+}

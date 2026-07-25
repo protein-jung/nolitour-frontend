@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import logo from "../assets/nolitour_logo.png";
 import { colors, radius } from "../styles/theme";
 import { ReporterRankingButton } from "./ReporterRankingButton";
+import { VisitorRankingButton } from "./VisitorRankingButton";
 
 const navLinkStyle = {
   color: colors.brown,
@@ -66,6 +67,7 @@ export function NavBar() {
           놀이터 제보
         </Link>
         <ReporterRankingButton />
+        <VisitorRankingButton />
       </div>
 
       <div className="navbar-links" style={{ marginLeft: "auto", gap: 12 }}>
@@ -148,8 +150,9 @@ export function NavBar() {
         <Link to="/report" style={mobileNavLinkStyle}>
           놀이터 제보
         </Link>
-        <div style={{ padding: "12px 6px 12px 0" }}>
+        <div style={{ padding: "12px 6px 12px 0", display: "flex", gap: 8 }}>
           <ReporterRankingButton />
+          <VisitorRankingButton />
         </div>
         {user ? (
           <>

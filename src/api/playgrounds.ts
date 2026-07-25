@@ -9,6 +9,7 @@ import type {
   PlaygroundCreate,
   PlaygroundImage,
   RiskTag,
+  VisitResult,
 } from "../types/playground";
 
 export interface BoundingBox {
@@ -113,6 +114,17 @@ export async function createComment(
 
 export async function deleteComment(playgroundId: string, commentId: string): Promise<void> {
   await apiClient.delete(`/playgrounds/${playgroundId}/comments/${commentId}`);
+}
+
+export async function checkInPlayground(
+  playgroundId: string,
+  position: { lat: number; lng: number },
+): Promise<VisitResult> {
+  const { data } = await apiClient.post<VisitResult>(`/playgrounds/${playgroundId}/visit`, {
+    latitude: position.lat,
+    longitude: position.lng,
+  });
+  return data;
 }
 
 export async function uploadCommentImage(

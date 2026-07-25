@@ -140,6 +140,8 @@ export interface Playground {
   rating_count: number | null;
   // 로그인한 사용자가 후기를 남긴 적 있는지 (목록·단건 조회 모두 채워짐, 퀘스트 완료 마커 표시용)
   reviewed_by_me: boolean;
+  // 로그인한 사용자가 GPS로 '왔다감' 체크인한 적 있는지 (목록·단건 조회 모두 채워짐)
+  visited_by_me: boolean;
 }
 
 export type PlaygroundCreate = Omit<
@@ -154,7 +156,13 @@ export type PlaygroundCreate = Omit<
   | "average_rating"
   | "rating_count"
   | "reviewed_by_me"
+  | "visited_by_me"
 >;
+
+export interface VisitResult {
+  visited_by_me: boolean;
+  distance_m: number;
+}
 
 // 후기 위험도 태그 (부모 제보)
 export type RiskTag = "near_road" | "many_bugs" | "poorly_maintained";

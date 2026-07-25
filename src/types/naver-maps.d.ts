@@ -56,6 +56,7 @@ declare global {
       title?: string;
       draggable?: boolean;
       icon?: HtmlIcon;
+      clickable?: boolean;
     }
 
     namespace Event {

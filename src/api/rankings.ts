@@ -7,3 +7,10 @@ export async function fetchTopReporters(limit = 10): Promise<ReporterRankingItem
   });
   return data;
 }
+
+export async function fetchTopVisitors(limit = 10): Promise<ReporterRankingItem[]> {
+  const { data } = await apiClient.get<ReporterRankingItem[]>("/rankings/visitors", {
+    params: { limit },
+  });
+  return data;
+}

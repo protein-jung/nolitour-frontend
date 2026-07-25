@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { NaverMap, type LatLngLiteral } from "../components/NaverMap";
+import { distanceMeters, formatDistance } from "../lib/geo";
 import {
+  checkInPlayground,
   createComment,
   deleteComment,
   fetchComments,
@@ -26,8 +28,9 @@ import {
   SURFACE_TYPE_LABEL,
 } from "../types/playground";
 import { useAuth } from "../context/AuthContext";
-import { Tag, StarDisplay } from "../components/Shared";
+import { Tag, StarDisplay, VisitStamp } from "../components/Shared";
 import { FeedMapToggle } from "../components/FeedMapToggle";
+import { PlaygroundListView } from "../components/PlaygroundListView";
 
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
 
@@ -78,6 +81,8 @@ export function MapPage() {
   const [commentPhotos, setCommentPhotos] = useState<File[]>([]);
   const [showReviewExtras, setShowReviewExtras] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkInError, setCheckInError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!deepLinkPlaygroundId) return;
@@ -90,6 +95,21 @@ export function MapPage() {
     fetchComments(deepLinkPlaygroundId).then(setComments);
   }, [deepLinkPlaygroundId]);
 
+  const playgroundsWithDistance = useMemo(
+    () =>
+      playgrounds.map((p) => ({
+        ...p,
+        distanceM: myLocation ? distanceMeters(myLocation, { lat: p.latitude, lng: p.longitude }) : null,
+      })),
+    [playgrounds, myLocation],
+  );
+
+  const playgroundsForList = useMemo(() => {
+    if (!myLocation) return playgroundsWithDistance;
+    return [...playgroundsWithDistance].sort((a, b) => (a.distanceM ?? Infinity) - (b.distanceM ?? Infinity));
+  }, [playgroundsWithDistance, myLocation]);
+
+  const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterAgeGroups, setFilterAgeGroups] = useState<AgeGroup[]>([]);
   const [filterShade, setFilterShade] = useState(false);
@@ -131,6 +151,7 @@ export function MapPage() {
     setCommentRisks([]);
     setCommentPhotos([]);
     setShowReviewExtras(false);
+    setCheckInError(null);
   }, []);
 
   const closeDetail = useCallback(() => setSelected(null), []);
@@ -153,6 +174,42 @@ export function MapPage() {
       ? await unlikePlayground(selected.id)
       : await likePlayground(selected.id);
     setSelected({ ...selected, like_count: status.like_count, liked_by_me: status.liked_by_me });
+  }
+
+  function checkIn() {
+    if (!selected || !user) return;
+    if (!navigator.geolocation) {
+      setCheckInError("이 브라우저는 위치 확인을 지원하지 않습니다.");
+      return;
+    }
+    setCheckingIn(true);
+    setCheckInError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const result = await checkInPlayground(selected.id, {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          });
+          setSelected((prev) => (prev ? { ...prev, visited_by_me: result.visited_by_me } : prev));
+          setPlaygrounds((prev) =>
+            prev.map((p) => (p.id === selected.id ? { ...p, visited_by_me: result.visited_by_me } : p)),
+          );
+        } catch (e) {
+          const message =
+            (e as { response?: { data?: { detail?: string } } }).response?.data?.detail ??
+            "체크인에 실패했어요. 잠시 후 다시 시도해주세요.";
+          setCheckInError(message);
+        } finally {
+          setCheckingIn(false);
+        }
+      },
+      () => {
+        setCheckInError("현재 위치를 가져오지 못했어요. 위치 권한을 확인해주세요.");
+        setCheckingIn(false);
+      },
+      { timeout: 8000 },
+    );
   }
 
   async function submitComment(e: FormEvent) {
@@ -192,6 +249,41 @@ export function MapPage() {
     <div className="map-layout" style={{ display: "flex", height: `calc(100vh - ${NAVBAR_HEIGHT}px)` }}>
       <div className="map-canvas-wrap" style={{ flex: 1, position: "relative" }}>
         <div className="map-filter-wrap" style={{ position: "absolute", top: 12, left: 12, zIndex: 1, display: "flex", flexDirection: "column", gap: 8, maxWidth: 260 }}>
+          <div style={{ display: "inline-flex", background: "#fff", borderRadius: radius.pill, boxShadow: shadow, padding: 4, gap: 4, alignSelf: "flex-start" }}>
+            <button
+              type="button"
+              onClick={() => setViewMode("map")}
+              style={{
+                border: "none",
+                borderRadius: radius.pill,
+                padding: "6px 14px",
+                fontFamily: "'Jua', sans-serif",
+                fontSize: 13,
+                cursor: "pointer",
+                background: viewMode === "map" ? colors.green : "transparent",
+                color: viewMode === "map" ? "#fff" : colors.brown,
+              }}
+            >
+              🗺 지도
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              style={{
+                border: "none",
+                borderRadius: radius.pill,
+                padding: "6px 14px",
+                fontFamily: "'Jua', sans-serif",
+                fontSize: 13,
+                cursor: "pointer",
+                background: viewMode === "list" ? colors.green : "transparent",
+                color: viewMode === "list" ? "#fff" : colors.brown,
+              }}
+            >
+              📋 리스트
+            </button>
+          </div>
+
           {error && (
             <div
               style={{
@@ -275,54 +367,60 @@ export function MapPage() {
           <FeedMapToggle active="map" />
         </div>
 
-        {!user && (
-          <div
-            className="map-guest-banner"
-            style={{
-              position: "absolute",
-              top: 64,
-              right: 12,
-              zIndex: 1,
-              background: "#fff",
-              padding: "8px 14px",
-              borderRadius: radius.md,
-              boxShadow: shadow,
-              fontSize: 13,
-              color: colors.brown,
-              maxWidth: 240,
-            }}
-          >
-            둘러보기만 가능해요. 확대/이동하거나 놀이터를 선택하려면 로그인해주세요.
-          </div>
-        )}
-        {mapReady && (
-          <NaverMap
-            playgrounds={playgrounds}
-            onSelect={handleSelect}
-            onInteractionBlocked={user ? undefined : handleInteractionBlocked}
-            initialCenter={initialCenter}
-            initialZoom={initialZoom}
-            currentLocation={myLocation}
-          />
-        )}
+        {viewMode === "map" ? (
+          <>
+            {!user && (
+              <div
+                className="map-guest-banner"
+                style={{
+                  position: "absolute",
+                  top: 64,
+                  right: 12,
+                  zIndex: 1,
+                  background: "#fff",
+                  padding: "8px 14px",
+                  borderRadius: radius.md,
+                  boxShadow: shadow,
+                  fontSize: 13,
+                  color: colors.brown,
+                  maxWidth: 240,
+                }}
+              >
+                둘러보기만 가능해요. 확대/이동하거나 놀이터를 선택하려면 로그인해주세요.
+              </div>
+            )}
+            {mapReady && (
+              <NaverMap
+                playgrounds={playgroundsWithDistance}
+                onSelect={handleSelect}
+                onInteractionBlocked={user ? undefined : handleInteractionBlocked}
+                initialCenter={initialCenter}
+                initialZoom={initialZoom}
+                currentLocation={myLocation}
+              />
+            )}
 
-        {user && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: 16,
-              left: 12,
-              zIndex: 1,
-              background: "#fff",
-              padding: "6px 12px",
-              borderRadius: radius.pill,
-              boxShadow: shadow,
-              fontSize: 12,
-              color: colors.brown,
-            }}
-          >
-            🏆 후기를 남긴 놀이터예요
-          </div>
+            {user && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 16,
+                  left: 12,
+                  zIndex: 1,
+                  background: "#fff",
+                  padding: "6px 12px",
+                  borderRadius: radius.pill,
+                  boxShadow: shadow,
+                  fontSize: 12,
+                  color: colors.brown,
+                }}
+              >
+                🏆 후기 · 👣 왔다감 표시
+              </div>
+            )}
+          </>
+        ) : (
+          <PlaygroundListView playgrounds={playgroundsForList} onSelect={handleSelect} nickname={user?.nickname} />
         )}
       </div>
       {selected && <div className="map-aside-backdrop" onClick={closeDetail} />}
@@ -341,7 +439,10 @@ export function MapPage() {
           <button type="button" className="map-aside-close" onClick={closeDetail} aria-label="닫기">
             ✕
           </button>
-          <h2 style={{ marginBottom: 4 }}>{selected.name}</h2>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+            <h2 style={{ marginBottom: 4 }}>{selected.name}</h2>
+            {selected.visited_by_me && user && <VisitStamp nickname={user.nickname} />}
+          </div>
           {selected.rating_count ? (
             <p style={{ margin: "0 0 10px", fontSize: 14, color: colors.brown }}>
               <StarDisplay rating={selected.average_rating ?? 0} /> {selected.average_rating?.toFixed(1)}{" "}
@@ -379,6 +480,14 @@ export function MapPage() {
           </div>
 
           <p style={{ color: colors.text }}>{selected.address}</p>
+          {myLocation && (
+            <p style={{ color: colors.textMuted, fontSize: 13 }}>
+              📍 현재 위치에서{" "}
+              {formatDistance(
+                distanceMeters(myLocation, { lat: selected.latitude, lng: selected.longitude }),
+              )}
+            </p>
+          )}
           {selected.directions && <p style={{ color: colors.textMuted }}>{selected.directions}</p>}
           {selected.description && <p>{selected.description}</p>}
           {selected.operating_hours && <p>영업시간: {selected.operating_hours}</p>}
@@ -421,7 +530,7 @@ export function MapPage() {
             </div>
           )}
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0", flexWrap: "wrap" }}>
             <button
               type="button"
               onClick={toggleLike}
@@ -438,7 +547,33 @@ export function MapPage() {
             >
               ♥ 좋아요 {selected.like_count ?? 0}
             </button>
+
+            {user && (
+              <button
+                type="button"
+                onClick={checkIn}
+                disabled={checkingIn || selected.visited_by_me}
+                style={{
+                  border: "none",
+                  borderRadius: radius.pill,
+                  padding: "8px 16px",
+                  cursor: checkingIn || selected.visited_by_me ? "default" : "pointer",
+                  background: selected.visited_by_me ? colors.green : colors.cream,
+                  color: selected.visited_by_me ? "#fff" : colors.brown,
+                  fontFamily: "'Jua', sans-serif",
+                }}
+              >
+                {selected.visited_by_me
+                  ? "👣 왔다감 완료"
+                  : checkingIn
+                    ? "위치 확인 중..."
+                    : "👣 왔다감 체크"}
+              </button>
+            )}
           </div>
+          {checkInError && (
+            <p style={{ color: colors.pink, fontSize: 12, marginTop: -8, marginBottom: 12 }}>{checkInError}</p>
+          )}
 
           <hr style={{ border: "none", borderTop: `2px solid ${colors.creamDeep}`, margin: "16px 0" }} />
 
