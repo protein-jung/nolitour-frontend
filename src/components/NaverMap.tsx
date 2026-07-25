@@ -3,8 +3,18 @@ import { useNaverMapsScript } from "../hooks/useNaverMapsScript";
 import type { Playground } from "../types/playground";
 import { colors } from "../styles/theme";
 import { formatDistance } from "../lib/geo";
+import notVisitedMarker from "../assets/not_visited_marker.png";
 
 export type PlaygroundWithDistance = Playground & { distanceM?: number | null };
+
+function notVisitedMarkerIcon(): naver.maps.ImageIcon {
+  return {
+    url: notVisitedMarker,
+    size: new window.naver.maps.Size(40, 40),
+    scaledSize: new window.naver.maps.Size(40, 40),
+    anchor: new window.naver.maps.Point(20, 33),
+  };
+}
 
 function reviewedMarkerIcon(): naver.maps.HtmlIcon {
   return {
@@ -152,11 +162,11 @@ export function NaverMap({
         position,
         map: mapRef.current!,
         title: playground.name,
-        ...(playground.reviewed_by_me
-          ? { icon: reviewedMarkerIcon() }
+        icon: playground.reviewed_by_me
+          ? reviewedMarkerIcon()
           : playground.visited_by_me
-            ? { icon: visitedMarkerIcon() }
-            : {}),
+            ? visitedMarkerIcon()
+            : notVisitedMarkerIcon(),
       });
       if (onSelect) {
         window.naver.maps.Event.addListener(marker, "click", () => {

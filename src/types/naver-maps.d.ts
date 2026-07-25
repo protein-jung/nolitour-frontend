@@ -50,12 +50,20 @@ declare global {
       anchor?: Point;
     }
 
+    interface ImageIcon {
+      url: string;
+      size?: Size;
+      scaledSize?: Size;
+      origin?: Point;
+      anchor?: Point;
+    }
+
     interface MarkerOptions {
       position: LatLng;
       map?: Map;
       title?: string;
       draggable?: boolean;
-      icon?: HtmlIcon;
+      icon?: HtmlIcon | ImageIcon;
       clickable?: boolean;
     }
 
