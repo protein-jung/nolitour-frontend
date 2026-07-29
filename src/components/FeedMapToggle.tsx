@@ -4,6 +4,7 @@ import { colors, radius, shadow } from "../styles/theme";
 export function FeedMapToggle({ active }: { active: "feed" | "map" }) {
   return (
     <div
+      className="feed-map-toggle"
       style={{
         display: "inline-flex",
         background: "#fff",

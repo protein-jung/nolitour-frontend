@@ -110,23 +110,24 @@ select {
     height: calc(100svh - 64px) !important;
   }
 
-  .map-toggle-wrap {
-    position: static !important;
-    display: flex;
-    justify-content: center;
-    padding: 10px 0;
-    background: #fff;
-    border-bottom: 3px solid var(--cream-deep);
-  }
-
   .map-filter-wrap {
     max-width: 190px !important;
-    top: 56px !important;
   }
 
   .map-guest-banner {
-    top: 56px !important;
     max-width: 180px !important;
+  }
+
+  .feed-map-toggle {
+    position: fixed !important;
+    bottom: 20px;
+    right: 16px;
+    flex-direction: column !important;
+    z-index: 30;
+  }
+
+  .feed-toggle-row {
+    margin-bottom: 0 !important;
   }
 
   .map-aside {
@@ -189,5 +190,39 @@ select {
 
   .admin-table-scroll > * {
     min-width: 560px;
+  }
+
+  .feed-page-inner {
+    max-width: none !important;
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    height: calc(100svh - 64px);
+  }
+
+  .feed-list {
+    flex: 1;
+    min-height: 0;
+    flex-direction: row !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 7.5vw;
+    gap: 12px !important;
+    padding: 12px 7.5vw !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .feed-card {
+    flex: 0 0 85vw;
+    width: 85vw;
+    height: 100%;
+    overflow-y: auto;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+
+  .feed-load-more {
+    display: none !important;
   }
 }

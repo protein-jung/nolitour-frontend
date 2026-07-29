@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchFeed } from "../api/feed";
 import {
@@ -27,6 +27,7 @@ export function FeedPage() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const feedListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setItems([]);
@@ -48,10 +49,18 @@ export function FeedPage() {
       .finally(() => setLoading(false));
   }
 
+  function handleFeedScroll() {
+    const el = feedListRef.current;
+    if (!el || loading || !hasMore) return;
+    if (!window.matchMedia("(max-width: 760px)").matches) return;
+    const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - el.clientWidth * 0.5;
+    if (nearEnd) loadMore(offset);
+  }
+
   return (
     <div style={{ background: colors.cream, flex: 1 }}>
-      <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 16px 80px" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+      <div className="feed-page-inner" style={{ maxWidth: 560, margin: "0 auto", padding: "24px 16px 80px" }}>
+        <div className="feed-toggle-row" style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
           <FeedMapToggle active="feed" />
         </div>
 
@@ -68,7 +77,12 @@ export function FeedPage() {
 
         {error && <p style={{ color: colors.pink, textAlign: "center" }}>{error}</p>}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <div
+          ref={feedListRef}
+          onScroll={handleFeedScroll}
+          className="feed-list"
+          style={{ display: "flex", flexDirection: "column", gap: 18 }}
+        >
           {items.map((item) => (
             <FeedCard key={item.id} item={item} />
           ))}
@@ -81,7 +95,7 @@ export function FeedPage() {
         )}
 
         {hasMore && (
-          <div style={{ textAlign: "center", marginTop: 24 }}>
+          <div className="feed-load-more" style={{ textAlign: "center", marginTop: 24 }}>
             <button
               type="button"
               onClick={() => loadMore(offset)}
@@ -160,6 +174,7 @@ function FeedCard({ item }: { item: FeedItem }) {
 
   return (
     <article
+      className="feed-card"
       style={{
         background: "#fff",
         borderRadius: radius.lg,
