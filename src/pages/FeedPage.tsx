@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { fetchFeed } from "../api/feed";
 import type { FeedItem } from "../types/playground";
 import { AGE_GROUP_LABEL, RISK_TAG_LABEL } from "../types/playground";
@@ -11,6 +11,9 @@ const PAGE_SIZE = 20;
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
 
 export function FeedPage() {
+  const [searchParams] = useSearchParams();
+  const authorId = searchParams.get("author") ?? undefined;
+
   const [items, setItems] = useState<FeedItem[]>([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -18,13 +21,16 @@ export function FeedPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setItems([]);
+    setOffset(0);
+    setHasMore(true);
     loadMore(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authorId]);
 
   function loadMore(fromOffset: number) {
     setLoading(true);
-    fetchFeed(PAGE_SIZE, fromOffset)
+    fetchFeed(PAGE_SIZE, fromOffset, authorId)
       .then((page) => {
         setItems((prev) => (fromOffset === 0 ? page : [...prev, ...page]));
         setHasMore(page.length === PAGE_SIZE);
@@ -40,6 +46,17 @@ export function FeedPage() {
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
           <FeedMapToggle active="feed" />
         </div>
+
+        {authorId && (
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <h2 style={{ marginBottom: 4 }}>
+              {items[0]?.author_nickname ?? "이용자"}님의 피드
+            </h2>
+            <Link to="/feed" style={{ fontSize: 13, color: colors.textMuted }}>
+              ← 전체 피드 보기
+            </Link>
+          </div>
+        )}
 
         {error && <p style={{ color: colors.pink, textAlign: "center" }}>{error}</p>}
 
@@ -148,7 +165,7 @@ function FeedCard({ item }: { item: FeedItem }) {
         )}
 
         <Link
-          to={`/map?playground=${item.playground_id}`}
+          to={`/?playground=${item.playground_id}`}
           style={{
             display: "inline-block",
             marginTop: 12,

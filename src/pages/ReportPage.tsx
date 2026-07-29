@@ -203,7 +203,7 @@ export function ReportPage() {
         await uploadPlaygroundImage(playground.id, photo);
       }
 
-      navigate("/map");
+      navigate("/");
     } catch {
       setError("제보 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {

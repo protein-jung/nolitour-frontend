@@ -13,10 +13,10 @@ export function FeedMapToggle({ active }: { active: "feed" | "map" }) {
         gap: 4,
       }}
     >
-      <Link to="/" style={tabStyle(active === "feed")}>
+      <Link to="/feed" style={tabStyle(active === "feed")}>
         피드
       </Link>
-      <Link to="/map" style={tabStyle(active === "map")}>
+      <Link to="/" style={tabStyle(active === "map")}>
         지도
       </Link>
     </div>

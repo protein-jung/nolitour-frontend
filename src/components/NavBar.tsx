@@ -3,8 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/nolitour_logo.png";
 import { colors, radius } from "../styles/theme";
-import { ReporterRankingButton } from "./ReporterRankingButton";
-import { VisitorRankingButton } from "./VisitorRankingButton";
 
 const navLinkStyle = {
   color: colors.brown,
@@ -60,14 +58,18 @@ export function NavBar() {
       </Link>
 
       <div className="navbar-links" style={{ marginLeft: 8 }}>
-        <Link to="/map" style={navLinkStyle}>
+        <Link to="/" style={navLinkStyle}>
           지도
         </Link>
         <Link to="/report" style={navLinkStyle}>
           놀이터 제보
         </Link>
-        <ReporterRankingButton />
-        <VisitorRankingButton />
+        <Link to="/rankings/reporters" style={navLinkStyle}>
+          🏆 제보왕
+        </Link>
+        <Link to="/rankings/visitors" style={navLinkStyle}>
+          👣 왔다감왕
+        </Link>
       </div>
 
       <div className="navbar-links" style={{ marginLeft: "auto", gap: 12 }}>
@@ -144,16 +146,18 @@ export function NavBar() {
           zIndex: 30,
         }}
       >
-        <Link to="/map" style={mobileNavLinkStyle}>
+        <Link to="/" style={mobileNavLinkStyle}>
           지도
         </Link>
         <Link to="/report" style={mobileNavLinkStyle}>
           놀이터 제보
         </Link>
-        <div style={{ padding: "12px 6px 12px 0", display: "flex", gap: 8 }}>
-          <ReporterRankingButton />
-          <VisitorRankingButton />
-        </div>
+        <Link to="/rankings/reporters" style={mobileNavLinkStyle}>
+          🏆 제보왕
+        </Link>
+        <Link to="/rankings/visitors" style={mobileNavLinkStyle}>
+          👣 왔다감왕
+        </Link>
         {user ? (
           <>
             <Link to="/mypage" style={mobileNavLinkStyle}>
