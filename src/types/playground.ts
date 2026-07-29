@@ -210,4 +210,15 @@ export interface FeedItem {
   playground_address: string;
   playground_latitude: number;
   playground_longitude: number;
+  like_count: number;
+  liked_by_me: boolean;
+  reply_count: number;
+}
+
+export interface CommentReply {
+  id: string;
+  content: string;
+  created_at: string;
+  author_nickname: string;
+  author_id: string;
 }

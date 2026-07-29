@@ -1,11 +1,19 @@
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchFeed } from "../api/feed";
-import type { FeedItem } from "../types/playground";
+import {
+  createCommentReply,
+  deleteCommentReply,
+  fetchCommentReplies,
+  likeComment,
+  unlikeComment,
+} from "../api/playgrounds";
+import type { CommentReply, FeedItem } from "../types/playground";
 import { AGE_GROUP_LABEL, RISK_TAG_LABEL } from "../types/playground";
 import { colors, primaryButtonStyle, radius, shadow } from "../styles/theme";
 import { Tag, StarDisplay } from "../components/Shared";
 import { FeedMapToggle } from "../components/FeedMapToggle";
+import { useAuth } from "../context/AuthContext";
 
 const PAGE_SIZE = 20;
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
@@ -90,6 +98,66 @@ export function FeedPage() {
 }
 
 function FeedCard({ item }: { item: FeedItem }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const [likeCount, setLikeCount] = useState(item.like_count);
+  const [likedByMe, setLikedByMe] = useState(item.liked_by_me);
+  const [likeBusy, setLikeBusy] = useState(false);
+
+  const [replyCount, setReplyCount] = useState(item.reply_count);
+  const [repliesOpen, setRepliesOpen] = useState(false);
+  const [replies, setReplies] = useState<CommentReply[] | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function toggleLike() {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    setLikeBusy(true);
+    try {
+      const status = likedByMe
+        ? await unlikeComment(item.playground_id, item.id)
+        : await likeComment(item.playground_id, item.id);
+      setLikeCount(status.like_count);
+      setLikedByMe(status.liked_by_me);
+    } finally {
+      setLikeBusy(false);
+    }
+  }
+
+  function toggleReplies() {
+    setRepliesOpen((prev) => {
+      const next = !prev;
+      if (next && replies === null) {
+        fetchCommentReplies(item.playground_id, item.id).then(setReplies);
+      }
+      return next;
+    });
+  }
+
+  async function submitReply(e: FormEvent) {
+    e.preventDefault();
+    if (!user || !replyText.trim()) return;
+    setSubmitting(true);
+    try {
+      const reply = await createCommentReply(item.playground_id, item.id, replyText.trim());
+      setReplies((prev) => [...(prev ?? []), reply]);
+      setReplyCount((c) => c + 1);
+      setReplyText("");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function removeReply(replyId: string) {
+    await deleteCommentReply(item.playground_id, item.id, replyId);
+    setReplies((prev) => prev?.filter((r) => r.id !== replyId) ?? null);
+    setReplyCount((c) => Math.max(0, c - 1));
+  }
+
   return (
     <article
       style={{
@@ -164,19 +232,126 @@ function FeedCard({ item }: { item: FeedItem }) {
           </div>
         )}
 
-        <Link
-          to={`/?playground=${item.playground_id}`}
-          style={{
-            display: "inline-block",
-            marginTop: 12,
-            fontSize: 13,
-            color: colors.greenDark,
-            fontFamily: "'Jua', sans-serif",
-            textDecoration: "none",
-          }}
-        >
-          🗺 지도에서 보기
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 12 }}>
+          <button
+            type="button"
+            onClick={toggleLike}
+            disabled={likeBusy}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              border: "none",
+              background: "transparent",
+              padding: 0,
+              cursor: "pointer",
+              fontFamily: "'Jua', sans-serif",
+              fontSize: 13,
+              color: likedByMe ? colors.pink : colors.textMuted,
+            }}
+          >
+            {likedByMe ? "♥" : "♡"} 좋아요 {likeCount}
+          </button>
+          <button
+            type="button"
+            onClick={toggleReplies}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              border: "none",
+              background: "transparent",
+              padding: 0,
+              cursor: "pointer",
+              fontFamily: "'Jua', sans-serif",
+              fontSize: 13,
+              color: colors.textMuted,
+            }}
+          >
+            💬 댓글 {replyCount}
+          </button>
+          <Link
+            to={`/?playground=${item.playground_id}`}
+            style={{
+              marginLeft: "auto",
+              fontSize: 13,
+              color: colors.greenDark,
+              fontFamily: "'Jua', sans-serif",
+              textDecoration: "none",
+            }}
+          >
+            🗺 지도에서 보기
+          </Link>
+        </div>
+
+        {repliesOpen && (
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${colors.creamDeep}` }}>
+            {replies === null && (
+              <p style={{ fontSize: 12, color: colors.textMuted }}>불러오는 중...</p>
+            )}
+            {replies?.length === 0 && (
+              <p style={{ fontSize: 12, color: colors.textMuted }}>아직 댓글이 없어요.</p>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
+              {replies?.map((r) => (
+                <div key={r.id} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                  <p style={{ margin: 0, fontSize: 13 }}>
+                    <strong style={{ color: colors.brown }}>{r.author_nickname}</strong>{" "}
+                    <span style={{ color: colors.text }}>{r.content}</span>
+                  </p>
+                  {user?.id === r.author_id && (
+                    <button
+                      type="button"
+                      onClick={() => removeReply(r.id)}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        color: colors.textMuted,
+                        fontSize: 11,
+                        cursor: "pointer",
+                        flexShrink: 0,
+                      }}
+                    >
+                      삭제
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {user ? (
+              <form onSubmit={submitReply} style={{ display: "flex", gap: 8 }}>
+                <input
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="댓글을 남겨보세요"
+                  style={{
+                    flex: 1,
+                    padding: "7px 12px",
+                    borderRadius: radius.pill,
+                    border: `2px solid ${colors.creamDeep}`,
+                    fontSize: 13,
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={submitting || !replyText.trim()}
+                  style={{ ...primaryButtonStyle(submitting), padding: "7px 16px", fontSize: 13 }}
+                >
+                  등록
+                </button>
+              </form>
+            ) : (
+              <p style={{ fontSize: 12, color: colors.textMuted }}>
+                댓글을 남기려면{" "}
+                <Link to="/login" style={{ color: colors.greenDark }}>
+                  로그인
+                </Link>
+                해주세요.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );

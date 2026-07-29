@@ -2,6 +2,7 @@ import { apiClient } from "./client";
 import type {
   AgeGroup,
   CommentImage,
+  CommentReply,
   EquipmentType,
   LikeStatus,
   Playground,
@@ -125,6 +126,50 @@ export async function checkInPlayground(
     longitude: position.lng,
   });
   return data;
+}
+
+export async function likeComment(playgroundId: string, commentId: string): Promise<LikeStatus> {
+  const { data } = await apiClient.post<LikeStatus>(
+    `/playgrounds/${playgroundId}/comments/${commentId}/like`,
+  );
+  return data;
+}
+
+export async function unlikeComment(playgroundId: string, commentId: string): Promise<LikeStatus> {
+  const { data } = await apiClient.delete<LikeStatus>(
+    `/playgrounds/${playgroundId}/comments/${commentId}/like`,
+  );
+  return data;
+}
+
+export async function fetchCommentReplies(
+  playgroundId: string,
+  commentId: string,
+): Promise<CommentReply[]> {
+  const { data } = await apiClient.get<CommentReply[]>(
+    `/playgrounds/${playgroundId}/comments/${commentId}/replies`,
+  );
+  return data;
+}
+
+export async function createCommentReply(
+  playgroundId: string,
+  commentId: string,
+  content: string,
+): Promise<CommentReply> {
+  const { data } = await apiClient.post<CommentReply>(
+    `/playgrounds/${playgroundId}/comments/${commentId}/replies`,
+    { content },
+  );
+  return data;
+}
+
+export async function deleteCommentReply(
+  playgroundId: string,
+  commentId: string,
+  replyId: string,
+): Promise<void> {
+  await apiClient.delete(`/playgrounds/${playgroundId}/comments/${commentId}/replies/${replyId}`);
 }
 
 export async function uploadCommentImage(
