@@ -58,7 +58,7 @@ export function NavBar() {
       </Link>
 
       <div className="navbar-links" style={{ marginLeft: 8 }}>
-        <Link to="/" style={navLinkStyle}>
+        <Link to="/map" style={navLinkStyle}>
           지도
         </Link>
         <Link to="/report" style={navLinkStyle}>
@@ -146,7 +146,7 @@ export function NavBar() {
           zIndex: 30,
         }}
       >
-        <Link to="/" style={mobileNavLinkStyle}>
+        <Link to="/map" style={mobileNavLinkStyle}>
           지도
         </Link>
         <Link to="/report" style={mobileNavLinkStyle}>

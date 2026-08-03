@@ -10,25 +10,38 @@ import {
   fetchPlayground,
   fetchPlaygrounds,
   likePlayground,
+  savePlayground,
   unlikePlayground,
+  unsavePlayground,
   uploadCommentImage,
 } from "../api/playgrounds";
 import type { AgeGroup, EquipmentType, Playground, PlaygroundComment, RiskTag } from "../types/playground";
 import { NAVBAR_HEIGHT } from "../components/NavBar";
 import { colors, primaryButtonStyle, radius, shadow } from "../styles/theme";
 import {
+  ACCESS_LEVEL_LABEL,
   AGE_GROUP_LABEL,
+  CONDITION_STATUS_LABEL,
   EQUIPMENT_LABEL,
   FENCE_LABEL,
+  MOOD_TAG_LABEL,
+  NATURE_FEATURE_LABEL,
+  NEARBY_FACILITY_LABEL,
   PARKING_LABEL,
+  PET_POLICY_LABEL,
+  PLAYGROUND_SIZE_LABEL,
   PLAYGROUND_TYPE_LABEL,
+  PLAY_DURATION_LABEL,
   RESTROOM_LABEL,
   RISK_TAG_LABEL,
+  ROAD_SAFETY_LABEL,
   SHADE_LEVEL_LABEL,
+  SMOKING_STATUS_LABEL,
   SURFACE_TYPE_LABEL,
+  WHEELED_ACCESS_LABEL,
 } from "../types/playground";
 import { useAuth } from "../context/AuthContext";
-import { Tag, StarDisplay, VisitStamp } from "../components/Shared";
+import { Tag, StarDisplay, StarPicker, VisitStamp } from "../components/Shared";
 import { FeedMapToggle } from "../components/FeedMapToggle";
 import { PlaygroundListView } from "../components/PlaygroundListView";
 
@@ -174,6 +187,14 @@ export function MapPage() {
       ? await unlikePlayground(selected.id)
       : await likePlayground(selected.id);
     setSelected({ ...selected, like_count: status.like_count, liked_by_me: status.liked_by_me });
+  }
+
+  async function toggleSave() {
+    if (!selected || !user) return;
+    const status = selected.saved_by_me
+      ? await unsavePlayground(selected.id)
+      : await savePlayground(selected.id);
+    setSelected({ ...selected, save_count: status.save_count, saved_by_me: status.saved_by_me });
   }
 
   function checkIn() {
@@ -492,7 +513,63 @@ export function MapPage() {
           {selected.description && <p>{selected.description}</p>}
           {selected.operating_hours && <p>영업시간: {selected.operating_hours}</p>}
           {selected.closed_days && <p>휴무일: {selected.closed_days}</p>}
+          {selected.operating_season && <p>운영기간: {selected.operating_season}</p>}
           {selected.phone && <p>전화: {selected.phone}</p>}
+
+          <p style={{ fontSize: 12, color: colors.textMuted, margin: "4px 0" }}>
+            👀 조회 {selected.view_count} · 🔖 저장 {selected.save_count ?? 0}
+          </p>
+
+          {(selected.condition_status || selected.size || selected.play_duration || selected.recommended_age || selected.recommend_rating) && (
+            <div style={{ marginTop: 12 }}>
+              <h3 style={{ fontSize: 14 }}>관리 상태 · 추천</h3>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                {selected.condition_status && <Tag color={colors.green}>{CONDITION_STATUS_LABEL[selected.condition_status]}</Tag>}
+                {selected.size && <Tag color={colors.blue}>{PLAYGROUND_SIZE_LABEL[selected.size]}</Tag>}
+                {selected.play_duration && <Tag color={colors.yellow}>예상 {PLAY_DURATION_LABEL[selected.play_duration]}</Tag>}
+                {selected.recommended_age != null && <Tag color={colors.pink}>추천 나이 {selected.recommended_age}세</Tag>}
+                {selected.recommend_rating != null && (
+                  <span style={{ fontSize: 13 }}>
+                    <StarDisplay rating={selected.recommend_rating} />
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {hasExtraDetails(selected) && (
+            <div style={{ marginTop: 12 }}>
+              <h3 style={{ fontSize: 14 }}>상세 정보</h3>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {selected.nature_features?.map((f) => (
+                  <Tag key={f} color={colors.green}>{NATURE_FEATURE_LABEL[f]}</Tag>
+                ))}
+                {selected.pet_policy && <Tag color={colors.blue}>{PET_POLICY_LABEL[selected.pet_policy]}</Tag>}
+                {selected.nearby_facilities?.map((f) => (
+                  <Tag key={f} color={colors.yellow}>{NEARBY_FACILITY_LABEL[f]}</Tag>
+                ))}
+                {selected.smoking_status && <Tag color={colors.pink}>{SMOKING_STATUS_LABEL[selected.smoking_status]}</Tag>}
+                {selected.wheeled_access?.map((w) => (
+                  <Tag key={w} color={colors.brown}>{WHEELED_ACCESS_LABEL[w]}</Tag>
+                ))}
+                {selected.stroller_access_level && (
+                  <Tag color={colors.blue}>유모차 접근 {ACCESS_LEVEL_LABEL[selected.stroller_access_level]}</Tag>
+                )}
+                {selected.road_safety && <Tag color={colors.pink}>도로 인접 {ROAD_SAFETY_LABEL[selected.road_safety]}</Tag>}
+              </div>
+            </div>
+          )}
+
+          {selected.mood_tags && selected.mood_tags.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <h3 style={{ fontSize: 14 }}>분위기</h3>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {selected.mood_tags.map((tag) => (
+                  <Tag key={tag} color={colors.green}>{MOOD_TAG_LABEL[tag]}</Tag>
+                ))}
+              </div>
+            </div>
+          )}
 
           {hasSafetyInfo(selected) && (
             <div style={{ marginTop: 12 }}>
@@ -546,6 +623,23 @@ export function MapPage() {
               }}
             >
               ♥ 좋아요 {selected.like_count ?? 0}
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleSave}
+              disabled={!user}
+              style={{
+                border: "none",
+                borderRadius: radius.pill,
+                padding: "8px 16px",
+                cursor: user ? "pointer" : "default",
+                background: selected.saved_by_me ? colors.yellow : colors.cream,
+                color: selected.saved_by_me ? "#fff" : colors.brown,
+                fontFamily: "'Jua', sans-serif",
+              }}
+            >
+              🔖 저장 {selected.save_count ?? 0}
             </button>
 
             {user && (
@@ -732,31 +826,14 @@ function hasSafetyInfo(p: Playground): boolean {
   );
 }
 
-function StarPicker({ rating, onChange }: { rating: number; onChange: (value: number) => void }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          onClick={() => onChange(rating === n ? 0 : n)}
-          style={{
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            fontSize: 20,
-            padding: 0,
-            color: n <= rating ? colors.yellow : colors.creamDeep,
-            lineHeight: 1,
-          }}
-          aria-label={`${n}점`}
-        >
-          ★
-        </button>
-      ))}
-      <span style={{ fontSize: 12, color: colors.textMuted }}>
-        {rating > 0 ? `${rating}점 (선택 안 함으로 취소)` : "별점 (선택)"}
-      </span>
-    </div>
+function hasExtraDetails(p: Playground): boolean {
+  return Boolean(
+    (p.nature_features && p.nature_features.length > 0) ||
+      p.pet_policy ||
+      (p.nearby_facilities && p.nearby_facilities.length > 0) ||
+      p.smoking_status ||
+      (p.wheeled_access && p.wheeled_access.length > 0) ||
+      p.stroller_access_level ||
+      p.road_safety,
   );
 }

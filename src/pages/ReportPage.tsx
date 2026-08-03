@@ -9,24 +9,47 @@ import { reverseGeocode } from "../lib/naverGeocoder";
 import { searchPlaces } from "../lib/kakaoPlaces";
 import type { AddressSuggestion } from "../types/address";
 import {
+  ACCESS_LEVEL_LABEL,
   AGE_GROUP_LABEL,
+  CONDITION_STATUS_LABEL,
   EQUIPMENT_LABEL,
   FENCE_LABEL,
+  MOOD_TAG_LABEL,
+  NATURE_FEATURE_LABEL,
+  NEARBY_FACILITY_LABEL,
   PARKING_LABEL,
+  PET_POLICY_LABEL,
+  PLAYGROUND_SIZE_LABEL,
   PLAYGROUND_TYPE_LABEL,
+  PLAY_DURATION_LABEL,
   RESTROOM_LABEL,
+  ROAD_SAFETY_LABEL,
   SHADE_LEVEL_LABEL,
+  SMOKING_STATUS_LABEL,
   SURFACE_TYPE_LABEL,
+  WHEELED_ACCESS_LABEL,
+  type AccessLevel,
   type AgeGroup,
+  type ConditionStatus,
   type EquipmentType,
   type FenceType,
+  type MoodTag,
+  type NatureFeature,
+  type NearbyFacility,
   type ParkingType,
+  type PetPolicy,
+  type PlayDuration,
+  type PlaygroundSize,
   type PlaygroundType,
   type RestroomType,
+  type RoadSafetyLevel,
   type ShadeLevel,
+  type SmokingStatus,
   type SurfaceType,
+  type WheeledAccessType,
 } from "../types/playground";
 import { cardStyle, colors, inputStyle, primaryButtonStyle, radius, secondaryButtonStyle, shadow } from "../styles/theme";
+import { StarPicker } from "../components/Shared";
 
 const PLAYGROUND_TYPES = Object.keys(PLAYGROUND_TYPE_LABEL) as PlaygroundType[];
 const AGE_GROUPS = Object.keys(AGE_GROUP_LABEL) as AgeGroup[];
@@ -36,6 +59,17 @@ const RESTROOM_TYPES = Object.keys(RESTROOM_LABEL) as RestroomType[];
 const PARKING_TYPES = Object.keys(PARKING_LABEL) as ParkingType[];
 const FENCE_TYPES = Object.keys(FENCE_LABEL) as FenceType[];
 const EQUIPMENT_TYPES = Object.keys(EQUIPMENT_LABEL) as EquipmentType[];
+const CONDITION_STATUSES = Object.keys(CONDITION_STATUS_LABEL) as ConditionStatus[];
+const PLAYGROUND_SIZES = Object.keys(PLAYGROUND_SIZE_LABEL) as PlaygroundSize[];
+const PLAY_DURATIONS = Object.keys(PLAY_DURATION_LABEL) as PlayDuration[];
+const NATURE_FEATURES = Object.keys(NATURE_FEATURE_LABEL) as NatureFeature[];
+const PET_POLICIES = Object.keys(PET_POLICY_LABEL) as PetPolicy[];
+const NEARBY_FACILITIES = Object.keys(NEARBY_FACILITY_LABEL) as NearbyFacility[];
+const SMOKING_STATUSES = Object.keys(SMOKING_STATUS_LABEL) as SmokingStatus[];
+const WHEELED_ACCESS_TYPES = Object.keys(WHEELED_ACCESS_LABEL) as WheeledAccessType[];
+const ACCESS_LEVELS = Object.keys(ACCESS_LEVEL_LABEL) as AccessLevel[];
+const ROAD_SAFETY_LEVELS = Object.keys(ROAD_SAFETY_LABEL) as RoadSafetyLevel[];
+const MOOD_TAGS = Object.keys(MOOD_TAG_LABEL) as MoodTag[];
 
 const SEOUL_CENTER: LatLngLiteral = { lat: 37.5665, lng: 126.978 };
 
@@ -79,6 +113,25 @@ export function ReportPage() {
   const [strollerAccessible, setStrollerAccessible] = useState(false);
   const [wheelchairAccessible, setWheelchairAccessible] = useState(false);
   const [equipment, setEquipment] = useState<EquipmentType[]>([]);
+
+  const [conditionStatus, setConditionStatus] = useState<ConditionStatus | "">("");
+  const [size, setSize] = useState<PlaygroundSize | "">("");
+  const [playDuration, setPlayDuration] = useState<PlayDuration | "">("");
+  const [recommendedAge, setRecommendedAge] = useState("");
+  const [recommendRating, setRecommendRating] = useState(0);
+
+  const [natureFeatures, setNatureFeatures] = useState<NatureFeature[]>([]);
+  const [operatingSeason, setOperatingSeason] = useState("");
+  const [petPolicy, setPetPolicy] = useState<PetPolicy | "">("");
+
+  const [nearbyFacilities, setNearbyFacilities] = useState<NearbyFacility[]>([]);
+  const [smokingStatus, setSmokingStatus] = useState<SmokingStatus | "">("");
+  const [wheeledAccess, setWheeledAccess] = useState<WheeledAccessType[]>([]);
+  const [strollerAccessLevel, setStrollerAccessLevel] = useState<AccessLevel | "">("");
+  const [roadSafety, setRoadSafety] = useState<RoadSafetyLevel | "">("");
+
+  const [moodTags, setMoodTags] = useState<MoodTag[]>([]);
+
   const [position, setPosition] = useState<LatLngLiteral | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -107,6 +160,10 @@ export function ReportPage() {
 
   function toggleEquipment(eq: EquipmentType) {
     setEquipment((prev) => (prev.includes(eq) ? prev.filter((v) => v !== eq) : [...prev, eq]));
+  }
+
+  function toggleInArray<T>(setter: (updater: (prev: T[]) => T[]) => void, value: T) {
+    setter((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
   }
 
   function handleAddressChange(value: string) {
@@ -197,13 +254,27 @@ export function ReportPage() {
         stroller_accessible: strollerAccessible,
         wheelchair_accessible: wheelchairAccessible,
         equipment: equipment.length ? equipment : null,
+        condition_status: conditionStatus || null,
+        size: size || null,
+        play_duration: playDuration || null,
+        recommended_age: recommendedAge ? Number(recommendedAge) : null,
+        recommend_rating: recommendRating > 0 ? recommendRating : null,
+        nature_features: natureFeatures.length ? natureFeatures : null,
+        operating_season: operatingSeason || null,
+        pet_policy: petPolicy || null,
+        nearby_facilities: nearbyFacilities.length ? nearbyFacilities : null,
+        smoking_status: smokingStatus || null,
+        wheeled_access: wheeledAccess.length ? wheeledAccess : null,
+        stroller_access_level: strollerAccessLevel || null,
+        road_safety: roadSafety || null,
+        mood_tags: moodTags.length ? moodTags : null,
       });
 
       for (const photo of photos) {
         await uploadPlaygroundImage(playground.id, photo);
       }
 
-      navigate("/");
+      navigate("/map");
     } catch {
       setError("제보 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
@@ -475,6 +546,223 @@ export function ReportPage() {
                 <label key={eq} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14 }}>
                   <input type="checkbox" checked={equipment.includes(eq)} onChange={() => toggleEquipment(eq)} />
                   {EQUIPMENT_LABEL[eq]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset style={{ border: `2px solid ${colors.creamDeep}`, borderRadius: radius.md, padding: 14 }}>
+            <legend style={{ padding: "0 6px", color: colors.brown, fontWeight: 600 }}>
+              관리 상태 · 규모 · 놀이시간 (선택)
+            </legend>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: colors.textMuted }}>
+                관리 상태
+                <select
+                  style={inputStyle()}
+                  value={conditionStatus}
+                  onChange={(e) => setConditionStatus(e.target.value as ConditionStatus)}
+                >
+                  <option value="">선택 안함</option>
+                  {CONDITION_STATUSES.map((v) => (
+                    <option key={v} value={v}>{CONDITION_STATUS_LABEL[v]}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: colors.textMuted }}>
+                규모
+                <select style={inputStyle()} value={size} onChange={(e) => setSize(e.target.value as PlaygroundSize)}>
+                  <option value="">선택 안함</option>
+                  {PLAYGROUND_SIZES.map((v) => (
+                    <option key={v} value={v}>{PLAYGROUND_SIZE_LABEL[v]}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: colors.textMuted }}>
+                예상 놀이시간
+                <select
+                  style={inputStyle()}
+                  value={playDuration}
+                  onChange={(e) => setPlayDuration(e.target.value as PlayDuration)}
+                >
+                  <option value="">선택 안함</option>
+                  {PLAY_DURATIONS.map((v) => (
+                    <option key={v} value={v}>{PLAY_DURATION_LABEL[v]}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset style={{ border: `2px solid ${colors.creamDeep}`, borderRadius: radius.md, padding: 14 }}>
+            <legend style={{ padding: "0 6px", color: colors.brown, fontWeight: 600 }}>추천 (선택)</legend>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "flex-end" }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: colors.textMuted }}>
+                가장 추천하는 나이 (세)
+                <input
+                  type="number"
+                  min={0}
+                  max={15}
+                  style={{ ...inputStyle(), width: 100 }}
+                  value={recommendedAge}
+                  onChange={(e) => setRecommendedAge(e.target.value)}
+                />
+              </label>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: 13, color: colors.textMuted }}>부모에게 추천하시나요?</span>
+                <StarPicker rating={recommendRating} onChange={setRecommendRating} />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset style={{ border: `2px solid ${colors.creamDeep}`, borderRadius: radius.md, padding: 14 }}>
+            <legend style={{ padding: "0 6px", color: colors.brown, fontWeight: 600 }}>
+              자연친화 · 반려동물 · 운영기간 (선택)
+            </legend>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <p style={{ fontSize: 13, color: colors.textMuted, margin: "0 0 6px" }}>자연친화 (복수 선택)</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                  {NATURE_FEATURES.map((f) => (
+                    <label key={f} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14 }}>
+                      <input
+                        type="checkbox"
+                        checked={natureFeatures.includes(f)}
+                        onChange={() => toggleInArray(setNatureFeatures, f)}
+                      />
+                      {NATURE_FEATURE_LABEL[f]}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+                <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: colors.textMuted }}>
+                  반려동물
+                  <select
+                    style={inputStyle()}
+                    value={petPolicy}
+                    onChange={(e) => setPetPolicy(e.target.value as PetPolicy)}
+                  >
+                    <option value="">선택 안함</option>
+                    {PET_POLICIES.map((v) => (
+                      <option key={v} value={v}>{PET_POLICY_LABEL[v]}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: colors.textMuted }}>
+                  운영기간
+                  <input
+                    style={inputStyle()}
+                    value={operatingSeason}
+                    onChange={(e) => setOperatingSeason(e.target.value)}
+                    placeholder="예: 6월~8월"
+                  />
+                </label>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset style={{ border: `2px solid ${colors.creamDeep}`, borderRadius: radius.md, padding: 14 }}>
+            <legend style={{ padding: "0 6px", color: colors.brown, fontWeight: 600 }}>
+              주변 시설 · 접근성 · 안전 (선택)
+            </legend>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <p style={{ fontSize: 13, color: colors.textMuted, margin: "0 0 6px" }}>주변 시설 (복수 선택)</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                  {NEARBY_FACILITIES.map((f) => (
+                    <label key={f} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14 }}>
+                      <input
+                        type="checkbox"
+                        checked={nearbyFacilities.includes(f)}
+                        onChange={() => toggleInArray(setNearbyFacilities, f)}
+                      />
+                      {NEARBY_FACILITY_LABEL[f]}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p style={{ fontSize: 13, color: colors.textMuted, margin: "0 0 6px" }}>자전거·킥보드 (복수 선택)</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                  {WHEELED_ACCESS_TYPES.map((w) => (
+                    <label key={w} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14 }}>
+                      <input
+                        type="checkbox"
+                        checked={wheeledAccess.includes(w)}
+                        onChange={() => toggleInArray(setWheeledAccess, w)}
+                      />
+                      {WHEELED_ACCESS_LABEL[w]}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+                <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: colors.textMuted }}>
+                  흡연
+                  <select
+                    style={inputStyle()}
+                    value={smokingStatus}
+                    onChange={(e) => setSmokingStatus(e.target.value as SmokingStatus)}
+                  >
+                    <option value="">선택 안함</option>
+                    {SMOKING_STATUSES.map((v) => (
+                      <option key={v} value={v}>{SMOKING_STATUS_LABEL[v]}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: colors.textMuted }}>
+                  유모차 접근성
+                  <select
+                    style={inputStyle()}
+                    value={strollerAccessLevel}
+                    onChange={(e) => setStrollerAccessLevel(e.target.value as AccessLevel)}
+                  >
+                    <option value="">선택 안함</option>
+                    {ACCESS_LEVELS.map((v) => (
+                      <option key={v} value={v}>{ACCESS_LEVEL_LABEL[v]}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: colors.textMuted }}>
+                  도로와 가까움
+                  <select
+                    style={inputStyle()}
+                    value={roadSafety}
+                    onChange={(e) => setRoadSafety(e.target.value as RoadSafetyLevel)}
+                  >
+                    <option value="">선택 안함</option>
+                    {ROAD_SAFETY_LEVELS.map((v) => (
+                      <option key={v} value={v}>{ROAD_SAFETY_LABEL[v]}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset style={{ border: `2px solid ${colors.creamDeep}`, borderRadius: radius.md, padding: 14 }}>
+            <legend style={{ padding: "0 6px", color: colors.brown, fontWeight: 600 }}>
+              놀이터 분위기 태그 (복수 선택 가능)
+            </legend>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              {MOOD_TAGS.map((tag) => (
+                <label key={tag} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14 }}>
+                  <input
+                    type="checkbox"
+                    checked={moodTags.includes(tag)}
+                    onChange={() => toggleInArray(setMoodTags, tag)}
+                  />
+                  {MOOD_TAG_LABEL[tag]}
                 </label>
               ))}
             </div>

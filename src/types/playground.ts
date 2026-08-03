@@ -106,6 +106,133 @@ export const EQUIPMENT_LABEL: Record<EquipmentType, string> = {
   water_play: "물놀이",
 };
 
+// 관리 상태
+export type ConditionStatus = "very_clean" | "average" | "needs_care";
+
+export const CONDITION_STATUS_LABEL: Record<ConditionStatus, string> = {
+  very_clean: "매우 깨끗함",
+  average: "보통",
+  needs_care: "관리 필요",
+};
+
+// 규모
+export type PlaygroundSize = "small" | "medium" | "large";
+
+export const PLAYGROUND_SIZE_LABEL: Record<PlaygroundSize, string> = {
+  small: "소형",
+  medium: "중형",
+  large: "대형",
+};
+
+// 예상 놀이시간
+export type PlayDuration = "min_30" | "hour_1" | "hour_2_plus";
+
+export const PLAY_DURATION_LABEL: Record<PlayDuration, string> = {
+  min_30: "30분",
+  hour_1: "1시간",
+  hour_2_plus: "2시간 이상",
+};
+
+// 자연친화 특징
+export type NatureFeature = "many_trees" | "shady" | "in_forest" | "in_park";
+
+export const NATURE_FEATURE_LABEL: Record<NatureFeature, string> = {
+  many_trees: "나무 많음",
+  shady: "그늘 많음",
+  in_forest: "숲 속",
+  in_park: "공원 안",
+};
+
+// 반려동물 출입
+export type PetPolicy = "allowed" | "not_allowed";
+
+export const PET_POLICY_LABEL: Record<PetPolicy, string> = {
+  allowed: "반려견 출입 가능",
+  not_allowed: "반려동물 출입 불가",
+};
+
+// 주변 시설
+export type NearbyFacility = "convenience_store" | "cafe" | "restroom" | "pharmacy" | "hospital" | "parking";
+
+export const NEARBY_FACILITY_LABEL: Record<NearbyFacility, string> = {
+  convenience_store: "편의점",
+  cafe: "카페",
+  restroom: "화장실",
+  pharmacy: "약국",
+  hospital: "병원",
+  parking: "주차장",
+};
+
+// 흡연 관련
+export type SmokingStatus = "many_smokers" | "no_smoking_zone";
+
+export const SMOKING_STATUS_LABEL: Record<SmokingStatus, string> = {
+  many_smokers: "흡연자 많음",
+  no_smoking_zone: "금연구역",
+};
+
+// 자전거·킥보드
+export type WheeledAccessType = "kickboard" | "bicycle";
+
+export const WHEELED_ACCESS_LABEL: Record<WheeledAccessType, string> = {
+  kickboard: "킥보드 가능",
+  bicycle: "자전거 가능",
+};
+
+// 접근성 등급 (유모차 등)
+export type AccessLevel = "easy" | "moderate" | "difficult";
+
+export const ACCESS_LEVEL_LABEL: Record<AccessLevel, string> = {
+  easy: "쉬움",
+  moderate: "보통",
+  difficult: "어려움",
+};
+
+// 도로 인접 안전도
+export type RoadSafetyLevel = "very_safe" | "moderate" | "dangerous";
+
+export const ROAD_SAFETY_LABEL: Record<RoadSafetyLevel, string> = {
+  very_safe: "매우 안전",
+  moderate: "보통",
+  dangerous: "위험",
+};
+
+// 놀이터 분위기 태그
+export type MoodTag =
+  | "quiet"
+  | "active"
+  | "photogenic"
+  | "spacious"
+  | "newly_built"
+  | "well_maintained"
+  | "hidden_gem"
+  | "rainy_day_ok"
+  | "summer_pick"
+  | "winter_pick"
+  | "stroller_friendly"
+  | "first_playground"
+  | "date_spot"
+  | "forest_vibe"
+  | "lots_to_do";
+
+export const MOOD_TAG_LABEL: Record<MoodTag, string> = {
+  quiet: "조용한",
+  active: "활동적인",
+  photogenic: "사진 찍기 좋은",
+  spacious: "넓은",
+  newly_built: "신설",
+  well_maintained: "관리 잘됨",
+  hidden_gem: "숨은 명소",
+  rainy_day_ok: "비 오는 날도 가능",
+  summer_pick: "여름 추천",
+  winter_pick: "겨울 추천",
+  stroller_friendly: "유모차 추천",
+  first_playground: "첫 놀이터",
+  date_spot: "데이트 가능",
+  forest_vibe: "숲속",
+  lots_to_do: "놀거리 많음",
+};
+
 export interface Playground {
   id: string;
   name: string;
@@ -129,6 +256,29 @@ export interface Playground {
   stroller_accessible: boolean | null;
   wheelchair_accessible: boolean | null;
   equipment: EquipmentType[] | null;
+
+  // 관리 상태 · 규모 · 놀이시간 · 추천
+  condition_status: ConditionStatus | null;
+  size: PlaygroundSize | null;
+  play_duration: PlayDuration | null;
+  recommended_age: number | null;
+  recommend_rating: number | null;
+
+  // 자연·반려동물·운영기간
+  nature_features: NatureFeature[] | null;
+  operating_season: string | null;
+  pet_policy: PetPolicy | null;
+
+  // 주변 시설 · 흡연 · 이동수단 · 접근성 · 안전
+  nearby_facilities: NearbyFacility[] | null;
+  smoking_status: SmokingStatus | null;
+  wheeled_access: WheeledAccessType[] | null;
+  stroller_access_level: AccessLevel | null;
+  road_safety: RoadSafetyLevel | null;
+
+  // 분위기 태그
+  mood_tags: MoodTag[] | null;
+
   source: PlaygroundSource;
   is_verified: boolean;
   images: PlaygroundImage[];
@@ -142,6 +292,11 @@ export interface Playground {
   reviewed_by_me: boolean;
   // 로그인한 사용자가 GPS로 '왔다감' 체크인한 적 있는지 (목록·단건 조회 모두 채워짐)
   visited_by_me: boolean;
+
+  // 운영 중 자동으로 쌓이는 데이터 (제보자가 입력하지 않음)
+  view_count: number;
+  save_count: number | null;
+  saved_by_me: boolean | null;
 }
 
 export type PlaygroundCreate = Omit<
@@ -157,6 +312,9 @@ export type PlaygroundCreate = Omit<
   | "rating_count"
   | "reviewed_by_me"
   | "visited_by_me"
+  | "view_count"
+  | "save_count"
+  | "saved_by_me"
 >;
 
 export interface VisitResult {
@@ -193,6 +351,11 @@ export interface PlaygroundComment {
 export interface LikeStatus {
   like_count: number;
   liked_by_me: boolean;
+}
+
+export interface SaveStatus {
+  save_count: number;
+  saved_by_me: boolean;
 }
 
 export interface FeedItem {

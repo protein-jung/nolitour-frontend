@@ -10,6 +10,7 @@ import type {
   PlaygroundCreate,
   PlaygroundImage,
   RiskTag,
+  SaveStatus,
   VisitResult,
 } from "../types/playground";
 
@@ -87,6 +88,16 @@ export async function likePlayground(playgroundId: string): Promise<LikeStatus> 
 
 export async function unlikePlayground(playgroundId: string): Promise<LikeStatus> {
   const { data } = await apiClient.delete<LikeStatus>(`/playgrounds/${playgroundId}/like`);
+  return data;
+}
+
+export async function savePlayground(playgroundId: string): Promise<SaveStatus> {
+  const { data } = await apiClient.post<SaveStatus>(`/playgrounds/${playgroundId}/save`);
+  return data;
+}
+
+export async function unsavePlayground(playgroundId: string): Promise<SaveStatus> {
+  const { data } = await apiClient.delete<SaveStatus>(`/playgrounds/${playgroundId}/save`);
   return data;
 }
 

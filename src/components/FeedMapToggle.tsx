@@ -17,7 +17,7 @@ export function FeedMapToggle({ active }: { active: "feed" | "map" }) {
       <Link to="/feed" style={tabStyle(active === "feed")}>
         피드
       </Link>
-      <Link to="/" style={tabStyle(active === "map")}>
+      <Link to="/map" style={tabStyle(active === "map")}>
         지도
       </Link>
     </div>

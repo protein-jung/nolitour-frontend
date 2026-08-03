@@ -286,7 +286,7 @@ function FeedCard({ item }: { item: FeedItem }) {
             💬 댓글 {replyCount}
           </button>
           <Link
-            to={`/?playground=${item.playground_id}`}
+            to={`/map?playground=${item.playground_id}`}
             style={{
               marginLeft: "auto",
               fontSize: 13,
