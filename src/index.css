@@ -72,6 +72,24 @@ select {
   font-family: var(--sans);
 }
 
+@keyframes heartBurst {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  40% {
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
 .navbar-toggle {
   display: none;
 }

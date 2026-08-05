@@ -1,6 +1,36 @@
 import type { ReactNode } from "react";
 import { colors, radius } from "../styles/theme";
 
+const AVATAR_PALETTE = [colors.green, colors.blue, colors.pink, colors.yellow, colors.brown, colors.greenDark];
+
+function avatarColor(nickname: string): string {
+  let hash = 0;
+  for (let i = 0; i < nickname.length; i++) hash = (hash * 31 + nickname.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+}
+
+export function AvatarCircle({ nickname, size = 36 }: { nickname: string; size?: number }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: avatarColor(nickname),
+        color: "#fff",
+        fontFamily: "'Jua', sans-serif",
+        fontSize: size * 0.42,
+        flexShrink: 0,
+      }}
+    >
+      {nickname.slice(0, 1)}
+    </span>
+  );
+}
+
 export function Tag({ children, color }: { children: ReactNode; color: string }) {
   return (
     <span

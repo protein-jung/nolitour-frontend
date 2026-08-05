@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchFeed } from "../api/feed";
+import { fetchUserProfile } from "../api/users";
 import {
   createCommentReply,
   deleteCommentReply,
@@ -9,14 +10,29 @@ import {
   unlikeComment,
 } from "../api/playgrounds";
 import type { CommentReply, FeedItem } from "../types/playground";
+import type { PublicUserProfile } from "../types/user";
 import { AGE_GROUP_LABEL, RISK_TAG_LABEL } from "../types/playground";
 import { colors, primaryButtonStyle, radius, shadow } from "../styles/theme";
-import { Tag, StarDisplay } from "../components/Shared";
+import { Tag, StarDisplay, AvatarCircle } from "../components/Shared";
 import { FeedMapToggle } from "../components/FeedMapToggle";
 import { useAuth } from "../context/AuthContext";
+import { formatRelativeTime } from "../lib/time";
 
 const PAGE_SIZE = 20;
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
+
+function viewToggleStyle(active: boolean): CSSProperties {
+  return {
+    border: `2px solid ${active ? colors.green : colors.creamDeep}`,
+    background: active ? colors.green : "#fff",
+    color: active ? "#fff" : colors.brown,
+    borderRadius: radius.pill,
+    padding: "6px 14px",
+    fontSize: 13,
+    fontFamily: "'Jua', sans-serif",
+    cursor: "pointer",
+  };
+}
 
 export function FeedPage() {
   const [searchParams] = useSearchParams();
@@ -27,13 +43,22 @@ export function FeedPage() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"card" | "grid">("card");
+  const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const feedListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setItems([]);
     setOffset(0);
     setHasMore(true);
+    setViewMode("card");
+    setProfile(null);
     loadMore(0);
+    if (authorId) {
+      fetchUserProfile(authorId)
+        .then(setProfile)
+        .catch(() => {});
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authorId]);
 
@@ -57,6 +82,22 @@ export function FeedPage() {
     if (nearEnd) loadMore(offset);
   }
 
+  function goToItem(itemId: string) {
+    setViewMode("card");
+    requestAnimationFrame(() => {
+      document.getElementById(`feed-item-${itemId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  const storyAuthors = authorId
+    ? []
+    : items.reduce<{ id: string; nickname: string }[]>((acc, item) => {
+        if (!acc.some((a) => a.id === item.author_id)) {
+          acc.push({ id: item.author_id, nickname: item.author_nickname });
+        }
+        return acc;
+      }, []).slice(0, 15);
+
   return (
     <div style={{ background: colors.cream, flex: 1 }}>
       <div className="feed-page-inner" style={{ maxWidth: 560, margin: "0 auto", padding: "24px 16px 80px" }}>
@@ -64,29 +105,126 @@ export function FeedPage() {
           <FeedMapToggle active="feed" />
         </div>
 
+        {storyAuthors.length > 0 && (
+          <div style={{ display: "flex", gap: 14, overflowX: "auto", padding: "2px 2px 18px" }}>
+            {storyAuthors.map((a) => (
+              <Link
+                key={a.id}
+                to={`/feed?author=${a.id}`}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 4,
+                  textDecoration: "none",
+                  flexShrink: 0,
+                  width: 60,
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    padding: 2,
+                    borderRadius: "50%",
+                    border: `2px solid ${colors.pink}`,
+                  }}
+                >
+                  <AvatarCircle nickname={a.nickname} size={52} />
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: colors.text,
+                    maxWidth: 60,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {a.nickname}
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
+
         {authorId && (
           <div style={{ textAlign: "center", marginBottom: 20 }}>
-            <h2 style={{ marginBottom: 4 }}>
-              {items[0]?.author_nickname ?? "이용자"}님의 피드
-            </h2>
+            <AvatarCircle nickname={profile?.nickname ?? items[0]?.author_nickname ?? "?"} size={64} />
+            <h2 style={{ margin: "8px 0 2px" }}>{profile?.nickname ?? items[0]?.author_nickname ?? "이용자"}님의 피드</h2>
+            {profile && (
+              <p style={{ margin: "0 0 8px", fontSize: 13, color: colors.textMuted }}>
+                제보한 놀이터 {profile.playground_count} · 남긴 후기 {profile.comment_count}
+              </p>
+            )}
             <Link to="/feed" style={{ fontSize: 13, color: colors.textMuted }}>
               ← 전체 피드 보기
             </Link>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 14 }}>
+              <button type="button" onClick={() => setViewMode("card")} style={viewToggleStyle(viewMode === "card")}>
+                🗂 카드형
+              </button>
+              <button type="button" onClick={() => setViewMode("grid")} style={viewToggleStyle(viewMode === "grid")}>
+                ▦ 그리드형
+              </button>
+            </div>
           </div>
         )}
 
         {error && <p style={{ color: colors.pink, textAlign: "center" }}>{error}</p>}
 
-        <div
-          ref={feedListRef}
-          onScroll={handleFeedScroll}
-          className="feed-list"
-          style={{ display: "flex", flexDirection: "column", gap: 18 }}
-        >
-          {items.map((item) => (
-            <FeedCard key={item.id} item={item} />
-          ))}
-        </div>
+        {viewMode === "grid" ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 3 }}>
+            {items.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => goToItem(item.id)}
+                style={{
+                  aspectRatio: "1 / 1",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  overflow: "hidden",
+                  background: item.images[0] ? "transparent" : colors.creamDeep,
+                }}
+              >
+                {item.images[0] ? (
+                  <img
+                    src={`${apiBase}${item.images[0].image_url}`}
+                    alt=""
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  <span
+                    style={{
+                      display: "block",
+                      padding: 6,
+                      fontSize: 11,
+                      color: colors.brown,
+                      lineHeight: 1.4,
+                      overflow: "hidden",
+                    }}
+                  >
+                    {item.content.slice(0, 40)}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div
+            ref={feedListRef}
+            onScroll={handleFeedScroll}
+            className="feed-list"
+            style={{ display: "flex", flexDirection: "column", gap: 18 }}
+          >
+            {items.map((item) => (
+              <FeedCard key={item.id} item={item} />
+            ))}
+          </div>
+        )}
 
         {items.length === 0 && !loading && !error && (
           <p style={{ textAlign: "center", color: colors.textMuted, marginTop: 40 }}>
@@ -118,6 +256,7 @@ function FeedCard({ item }: { item: FeedItem }) {
   const [likeCount, setLikeCount] = useState(item.like_count);
   const [likedByMe, setLikedByMe] = useState(item.liked_by_me);
   const [likeBusy, setLikeBusy] = useState(false);
+  const [showHeartBurst, setShowHeartBurst] = useState(false);
 
   const [replyCount, setReplyCount] = useState(item.reply_count);
   const [repliesOpen, setRepliesOpen] = useState(false);
@@ -135,6 +274,20 @@ function FeedCard({ item }: { item: FeedItem }) {
       const status = likedByMe
         ? await unlikeComment(item.playground_id, item.id)
         : await likeComment(item.playground_id, item.id);
+      setLikeCount(status.like_count);
+      setLikedByMe(status.liked_by_me);
+    } finally {
+      setLikeBusy(false);
+    }
+  }
+
+  async function handleDoubleClickImage() {
+    setShowHeartBurst(true);
+    window.setTimeout(() => setShowHeartBurst(false), 700);
+    if (!user || likedByMe || likeBusy) return;
+    setLikeBusy(true);
+    try {
+      const status = await likeComment(item.playground_id, item.id);
       setLikeCount(status.like_count);
       setLikedByMe(status.liked_by_me);
     } finally {
@@ -174,6 +327,7 @@ function FeedCard({ item }: { item: FeedItem }) {
 
   return (
     <article
+      id={`feed-item-${item.id}`}
       className="feed-card"
       style={{
         background: "#fff",
@@ -183,71 +337,74 @@ function FeedCard({ item }: { item: FeedItem }) {
         overflow: "hidden",
       }}
     >
-      <div style={{ padding: "14px 16px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <strong style={{ fontSize: 14, color: colors.brown }}>{item.author_nickname}</strong>
-          <span style={{ fontSize: 12, color: colors.textMuted }}>
-            {new Date(item.created_at).toLocaleDateString()}
-          </span>
-        </div>
-        {item.rating && (
-          <p style={{ margin: "4px 0 0" }}>
-            <StarDisplay rating={item.rating} />
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px 8px" }}>
+        <Link to={`/feed?author=${item.author_id}`}>
+          <AvatarCircle nickname={item.author_nickname} size={36} />
+        </Link>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Link to={`/feed?author=${item.author_id}`} style={{ textDecoration: "none" }}>
+            <strong style={{ fontSize: 14, color: colors.brown }}>{item.author_nickname}</strong>
+          </Link>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 11,
+              color: colors.textMuted,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {item.playground_name} · {formatRelativeTime(item.created_at)}
           </p>
-        )}
-        <p style={{ margin: "6px 0 0", fontSize: 15, fontWeight: 700, color: colors.text }}>
-          {item.playground_name}
-        </p>
-        <p style={{ margin: "2px 0 8px", fontSize: 12, color: colors.textMuted }}>
-          {item.playground_address}
-        </p>
+        </div>
+        {item.rating && <StarDisplay rating={item.rating} />}
       </div>
 
-      {item.images.length > 0 && (
+      {item.images.length > 0 ? (
         <div
-          style={{
-            display: "flex",
-            overflowX: "auto",
-            scrollSnapType: "x mandatory",
-          }}
+          onDoubleClick={handleDoubleClickImage}
+          style={{ position: "relative", display: "flex", overflowX: "auto", scrollSnapType: "x mandatory" }}
         >
           {item.images.map((img) => (
             <img
               key={img.id}
               src={`${apiBase}${img.image_url}`}
               alt=""
+              draggable={false}
               style={{
                 width: "100%",
                 flex: "0 0 100%",
-                height: 280,
+                aspectRatio: "1 / 1",
                 objectFit: "cover",
                 scrollSnapAlign: "start",
               }}
             />
           ))}
+          {showHeartBurst && (
+            <span
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 72,
+                filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.35))",
+                animation: "heartBurst 0.7s ease-out",
+                pointerEvents: "none",
+              }}
+            >
+              ❤️
+            </span>
+          )}
         </div>
+      ) : (
+        <p style={{ margin: "0 16px 8px", fontSize: 12, color: colors.textMuted }}>{item.playground_address}</p>
       )}
 
-      <div style={{ padding: 16 }}>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: colors.text }}>{item.content}</p>
-
-        {((item.recommended_ages && item.recommended_ages.length > 0) ||
-          (item.risk_tags && item.risk_tags.length > 0)) && (
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 8 }}>
-            {item.recommended_ages?.map((ag) => (
-              <Tag key={ag} color={colors.blue}>
-                {AGE_GROUP_LABEL[ag]}
-              </Tag>
-            ))}
-            {item.risk_tags?.map((risk) => (
-              <Tag key={risk} color={colors.pink}>
-                ⚠ {RISK_TAG_LABEL[risk]}
-              </Tag>
-            ))}
-          </div>
-        )}
-
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 12 }}>
+      <div style={{ padding: "12px 16px 16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <button
             type="button"
             onClick={toggleLike}
@@ -299,19 +456,40 @@ function FeedCard({ item }: { item: FeedItem }) {
           </Link>
         </div>
 
+        <p style={{ margin: "10px 0 0", fontSize: 14, lineHeight: 1.6, color: colors.text }}>
+          <Link to={`/feed?author=${item.author_id}`} style={{ textDecoration: "none" }}>
+            <strong style={{ color: colors.brown }}>{item.author_nickname}</strong>
+          </Link>{" "}
+          {item.content}
+        </p>
+
+        {((item.recommended_ages && item.recommended_ages.length > 0) ||
+          (item.risk_tags && item.risk_tags.length > 0)) && (
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 8 }}>
+            {item.recommended_ages?.map((ag) => (
+              <Tag key={ag} color={colors.blue}>
+                {AGE_GROUP_LABEL[ag]}
+              </Tag>
+            ))}
+            {item.risk_tags?.map((risk) => (
+              <Tag key={risk} color={colors.pink}>
+                ⚠ {RISK_TAG_LABEL[risk]}
+              </Tag>
+            ))}
+          </div>
+        )}
+
         {repliesOpen && (
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${colors.creamDeep}` }}>
-            {replies === null && (
-              <p style={{ fontSize: 12, color: colors.textMuted }}>불러오는 중...</p>
-            )}
-            {replies?.length === 0 && (
-              <p style={{ fontSize: 12, color: colors.textMuted }}>아직 댓글이 없어요.</p>
-            )}
+            {replies === null && <p style={{ fontSize: 12, color: colors.textMuted }}>불러오는 중...</p>}
+            {replies?.length === 0 && <p style={{ fontSize: 12, color: colors.textMuted }}>아직 댓글이 없어요.</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
               {replies?.map((r) => (
                 <div key={r.id} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                   <p style={{ margin: 0, fontSize: 13 }}>
-                    <strong style={{ color: colors.brown }}>{r.author_nickname}</strong>{" "}
+                    <Link to={`/feed?author=${r.author_id}`} style={{ textDecoration: "none" }}>
+                      <strong style={{ color: colors.brown }}>{r.author_nickname}</strong>
+                    </Link>{" "}
                     <span style={{ color: colors.text }}>{r.content}</span>
                   </p>
                   {user?.id === r.author_id && (
