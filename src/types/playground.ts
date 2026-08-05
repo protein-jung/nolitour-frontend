@@ -322,6 +322,19 @@ export interface VisitResult {
   distance_m: number;
 }
 
+export interface FieldChange {
+  old: unknown;
+  new: unknown;
+}
+
+export interface PlaygroundEdit {
+  id: string;
+  editor_id: string;
+  editor_nickname: string;
+  changes: Record<string, FieldChange>;
+  created_at: string;
+}
+
 // 후기 위험도 태그 (부모 제보)
 export type RiskTag = "near_road" | "many_bugs" | "poorly_maintained";
 

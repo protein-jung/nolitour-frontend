@@ -5,6 +5,8 @@ import { HomePage } from "./pages/HomePage";
 import { FeedPage } from "./pages/FeedPage";
 import { MapPage } from "./pages/MapPage";
 import { ReportPage } from "./pages/ReportPage";
+import { EditPlaygroundPage } from "./pages/EditPlaygroundPage";
+import { EditHistoryPage } from "./pages/EditHistoryPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { MyPage } from "./pages/MyPage";
@@ -23,6 +25,8 @@ function App() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/report" element={<ReportPage />} />
+          <Route path="/playgrounds/:id/edit" element={<EditPlaygroundPage />} />
+          <Route path="/playgrounds/:id/edits" element={<EditHistoryPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/mypage" element={<MyPage />} />

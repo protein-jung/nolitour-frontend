@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { NaverMap, type LatLngLiteral } from "../components/NaverMap";
 import { distanceMeters, formatDistance } from "../lib/geo";
 import {
@@ -44,6 +44,7 @@ import { useAuth } from "../context/AuthContext";
 import { Tag, StarDisplay, StarPicker, VisitStamp } from "../components/Shared";
 import { FeedMapToggle } from "../components/FeedMapToggle";
 import { PlaygroundListView } from "../components/PlaygroundListView";
+import { extractApiErrorMessage } from "../lib/apiError";
 
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
 
@@ -217,10 +218,7 @@ export function MapPage() {
             prev.map((p) => (p.id === selected.id ? { ...p, visited_by_me: result.visited_by_me } : p)),
           );
         } catch (e) {
-          const message =
-            (e as { response?: { data?: { detail?: string } } }).response?.data?.detail ??
-            "체크인에 실패했어요. 잠시 후 다시 시도해주세요.";
-          setCheckInError(message);
+          setCheckInError(extractApiErrorMessage(e, "체크인에 실패했어요. 잠시 후 다시 시도해주세요."));
         } finally {
           setCheckingIn(false);
         }
@@ -668,6 +666,17 @@ export function MapPage() {
           {checkInError && (
             <p style={{ color: colors.pink, fontSize: 12, marginTop: -8, marginBottom: 12 }}>{checkInError}</p>
           )}
+
+          <div style={{ display: "flex", gap: 14, marginBottom: 12 }}>
+            {user && (
+              <Link to={`/playgrounds/${selected.id}/edit`} style={{ fontSize: 13, color: colors.textMuted }}>
+                ✏️ 정보 수정하기
+              </Link>
+            )}
+            <Link to={`/playgrounds/${selected.id}/edits`} style={{ fontSize: 13, color: colors.textMuted }}>
+              📜 수정 이력
+            </Link>
+          </div>
 
           <hr style={{ border: "none", borderTop: `2px solid ${colors.creamDeep}`, margin: "16px 0" }} />
 

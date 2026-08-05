@@ -8,6 +8,7 @@ import type {
   Playground,
   PlaygroundComment,
   PlaygroundCreate,
+  PlaygroundEdit,
   PlaygroundImage,
   RiskTag,
   SaveStatus,
@@ -59,6 +60,19 @@ export async function fetchPlayground(id: string): Promise<Playground> {
 
 export async function createPlayground(payload: PlaygroundCreate): Promise<Playground> {
   const { data } = await apiClient.post<Playground>("/playgrounds", payload);
+  return data;
+}
+
+export async function updatePlayground(
+  id: string,
+  payload: PlaygroundCreate,
+): Promise<Playground> {
+  const { data } = await apiClient.patch<Playground>(`/playgrounds/${id}`, payload);
+  return data;
+}
+
+export async function fetchPlaygroundEdits(id: string): Promise<PlaygroundEdit[]> {
+  const { data } = await apiClient.get<PlaygroundEdit[]>(`/playgrounds/${id}/edits`);
   return data;
 }
 
