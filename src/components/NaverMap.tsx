@@ -56,6 +56,25 @@ function visitedMarkerIcon(): naver.maps.HtmlIcon {
   };
 }
 
+function activeViewersIcon(count: number): naver.maps.HtmlIcon {
+  return {
+    content: `
+      <div style="
+        display: inline-flex; align-items: center; white-space: nowrap;
+        background: ${colors.pink};
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 999px;
+        padding: 1px 8px;
+        font-family: 'Jua', sans-serif;
+        font-size: 11px;
+        box-shadow: 0 1px 4px rgba(92, 61, 38, 0.3);
+      ">🔥 ${count}</div>
+    `,
+    anchor: new window.naver.maps.Point(-4, -8),
+  };
+}
+
 function distanceLabelIcon(distanceM: number): naver.maps.HtmlIcon {
   const text = formatDistance(distanceM);
   return {
@@ -185,6 +204,17 @@ export function NaverMap({
             position,
             map: mapRef.current!,
             icon: distanceLabelIcon(playground.distanceM),
+            clickable: false,
+          }),
+        );
+      }
+
+      if (playground.active_viewers > 0) {
+        newMarkers.push(
+          new window.naver.maps.Marker({
+            position,
+            map: mapRef.current!,
+            icon: activeViewersIcon(playground.active_viewers),
             clickable: false,
           }),
         );

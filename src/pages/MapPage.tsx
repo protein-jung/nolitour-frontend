@@ -131,6 +131,7 @@ export function MapPage() {
   const [filterRestroom, setFilterRestroom] = useState(false);
   const [filterSandPlay, setFilterSandPlay] = useState(false);
   const [filterWaterPlay, setFilterWaterPlay] = useState(false);
+  const [sortPopular, setSortPopular] = useState(false);
 
   useEffect(() => {
     const equipment: EquipmentType[] = [
@@ -143,10 +144,11 @@ export function MapPage() {
       hasParking: filterParking,
       hasRestroom: filterRestroom,
       equipment,
+      ...(sortPopular && { sort: "popular", limit: 50 }),
     })
       .then(setPlaygrounds)
       .catch(() => setError("놀이터 목록을 불러오지 못했습니다."));
-  }, [filterAgeGroups, filterShade, filterParking, filterRestroom, filterSandPlay, filterWaterPlay]);
+  }, [filterAgeGroups, filterShade, filterParking, filterRestroom, filterSandPlay, filterWaterPlay, sortPopular]);
 
   function toggleFilterAgeGroup(ag: AgeGroup) {
     setFilterAgeGroups((prev) => (prev.includes(ag) ? prev.filter((v) => v !== ag) : [...prev, ag]));
@@ -316,6 +318,28 @@ export function MapPage() {
               {error}
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={() => setSortPopular((v) => !v)}
+            style={{
+              display: "inline-flex",
+              alignSelf: "flex-start",
+              alignItems: "center",
+              gap: 6,
+              border: "none",
+              borderRadius: radius.pill,
+              padding: "8px 16px",
+              cursor: "pointer",
+              fontFamily: "'Jua', sans-serif",
+              fontSize: 13,
+              boxShadow: shadow,
+              background: sortPopular ? colors.pink : "#fff",
+              color: sortPopular ? "#fff" : colors.brown,
+            }}
+          >
+            🔥 인기순{sortPopular ? " (적용됨)" : ""}
+          </button>
 
           <div style={{ background: "#fff", borderRadius: radius.md, boxShadow: shadow, padding: 12 }}>
             <button
@@ -517,6 +541,23 @@ export function MapPage() {
           <p style={{ fontSize: 12, color: colors.textMuted, margin: "4px 0" }}>
             👀 조회 {selected.view_count} · 🔖 저장 {selected.save_count ?? 0}
           </p>
+          {selected.active_viewers > 0 && (
+            <p
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 12,
+                color: "#fff",
+                background: colors.pink,
+                borderRadius: radius.pill,
+                padding: "3px 10px",
+                margin: "0 0 4px",
+              }}
+            >
+              🔥 지금 {selected.active_viewers}명이 보는 중
+            </p>
+          )}
 
           {(selected.condition_status || selected.size || selected.play_duration || selected.recommended_age || selected.recommend_rating) && (
             <div style={{ marginTop: 12 }}>
@@ -685,7 +726,9 @@ export function MapPage() {
             {comments.map((c) => (
               <div key={c.id} style={{ background: colors.cream, borderRadius: radius.sm, padding: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <strong style={{ fontSize: 13, color: colors.brown }}>{c.author_nickname}</strong>
+                  <Link to={`/feed?author=${c.author_id}`} style={{ textDecoration: "none" }}>
+                    <strong style={{ fontSize: 13, color: colors.brown }}>{c.author_nickname}</strong>
+                  </Link>
                   {user?.id === c.author_id && (
                     <button
                       type="button"

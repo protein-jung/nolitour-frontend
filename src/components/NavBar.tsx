@@ -70,6 +70,9 @@ export function NavBar() {
         <Link to="/rankings/visitors" style={navLinkStyle}>
           👣 왔다감왕
         </Link>
+        <Link to="/rankings/playgrounds" style={navLinkStyle}>
+          🔥 인기 놀이터
+        </Link>
       </div>
 
       <div className="navbar-links" style={{ marginLeft: "auto", gap: 12 }}>
@@ -157,6 +160,9 @@ export function NavBar() {
         </Link>
         <Link to="/rankings/visitors" style={mobileNavLinkStyle}>
           👣 왔다감왕
+        </Link>
+        <Link to="/rankings/playgrounds" style={mobileNavLinkStyle}>
+          🔥 인기 놀이터
         </Link>
         {user ? (
           <>

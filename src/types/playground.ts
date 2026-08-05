@@ -297,6 +297,8 @@ export interface Playground {
   view_count: number;
   save_count: number | null;
   saved_by_me: boolean | null;
+  // 최근 몇 분 내 조회 기록 수 (지금 보는 중인 인원수의 근사치)
+  active_viewers: number;
 }
 
 export type PlaygroundCreate = Omit<
@@ -315,6 +317,7 @@ export type PlaygroundCreate = Omit<
   | "view_count"
   | "save_count"
   | "saved_by_me"
+  | "active_viewers"
 >;
 
 export interface VisitResult {
