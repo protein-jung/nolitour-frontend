@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/nolitour_logo.png";
 import { cardStyle, colors, inputStyle, primaryButtonStyle } from "../styles/theme";
+import { extractApiErrorMessage } from "../lib/apiError";
 
 export function RegisterPage() {
   const { register } = useAuth();
@@ -22,8 +23,8 @@ export function RegisterPage() {
     try {
       await register({ name, nickname, phone, password });
       navigate("/");
-    } catch {
-      setError("회원가입에 실패했습니다. 이미 등록된 휴대폰 번호이거나 닉네임일 수 있습니다.");
+    } catch (e) {
+      setError(extractApiErrorMessage(e, "회원가입에 실패했습니다. 잠시 후 다시 시도해주세요."));
     } finally {
       setSubmitting(false);
     }
