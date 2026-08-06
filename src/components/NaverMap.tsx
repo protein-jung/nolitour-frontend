@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNaverMapsScript } from "../hooks/useNaverMapsScript";
 import type { Playground } from "../types/playground";
 import { colors } from "../styles/theme";
@@ -7,91 +7,122 @@ import notVisitedMarker from "../assets/not_visited_marker.png";
 
 export type PlaygroundWithDistance = Playground & { distanceM?: number | null };
 
-function notVisitedMarkerIcon(): naver.maps.ImageIcon {
-  return {
-    url: notVisitedMarker,
-    size: new window.naver.maps.Size(40, 40),
-    scaledSize: new window.naver.maps.Size(40, 40),
-    anchor: new window.naver.maps.Point(20, 33),
-  };
+// 마커 위 배지 줄(거리·"지금 보는 중")의 고정 높이 + 핀과의 간격. box-sizing: border-box로 실제 렌더 높이를 이 값과 정확히 맞춰서
+// 핀 바로 위에 틈 없이 붙어 보이도록 앵커를 계산한다.
+const BADGE_HEIGHT = 20;
+const BADGE_GAP = 4;
+const BADGE_ROW_BLOCK_HEIGHT = BADGE_HEIGHT + BADGE_GAP;
+
+function badgeRowHtml(distanceM: number | null | undefined, activeViewers: number): string {
+  const distanceBadge =
+    typeof distanceM === "number"
+      ? `
+        <span style="
+          display: inline-flex; align-items: center; white-space: nowrap;
+          height: ${BADGE_HEIGHT}px; box-sizing: border-box;
+          background: #fff;
+          color: ${colors.brown};
+          border: 1px solid ${colors.creamDeep};
+          border-radius: 999px;
+          padding: 0 7px;
+          font-family: 'Jua', sans-serif;
+          font-size: 11px;
+          box-shadow: 0 1px 4px rgba(92, 61, 38, 0.25);
+        ">${formatDistance(distanceM)}</span>
+      `
+      : "";
+  const viewerBadge =
+    activeViewers > 0
+      ? `
+        <span style="
+          display: inline-flex; align-items: center; white-space: nowrap;
+          height: ${BADGE_HEIGHT}px; box-sizing: border-box;
+          background: ${colors.pink};
+          color: #fff;
+          border: 2px solid #fff;
+          border-radius: 999px;
+          padding: 0 8px;
+          font-family: 'Jua', sans-serif;
+          font-size: 11px;
+          box-shadow: 0 1px 4px rgba(92, 61, 38, 0.3);
+        ">🔥 ${activeViewers}</span>
+      `
+      : "";
+  if (!distanceBadge && !viewerBadge) return "";
+  return `
+    <div style="display: flex; align-items: center; gap: 4px; margin-bottom: ${BADGE_GAP}px;">
+      ${distanceBadge}${viewerBadge}
+    </div>
+  `;
 }
 
-function reviewedMarkerIcon(): naver.maps.HtmlIcon {
+function notVisitedMarkerIcon(
+  distanceM: number | null | undefined,
+  activeViewers: number,
+): naver.maps.ImageIcon | naver.maps.HtmlIcon {
+  const badgeRow = badgeRowHtml(distanceM, activeViewers);
+  if (!badgeRow) {
+    return {
+      url: notVisitedMarker,
+      size: new window.naver.maps.Size(40, 40),
+      scaledSize: new window.naver.maps.Size(40, 40),
+      anchor: new window.naver.maps.Point(20, 33),
+    };
+  }
   return {
     content: `
-      <div style="
-        width: 34px; height: 34px;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        background: ${colors.yellow};
-        border: 3px solid #fff;
-        box-shadow: 0 2px 6px rgba(92, 61, 38, 0.35);
-        display: flex; align-items: center; justify-content: center;
-      ">
-        <span style="transform: rotate(45deg); font-size: 15px; line-height: 1;">🏆</span>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        ${badgeRow}
+        <img src="${notVisitedMarker}" style="width: 40px; height: 40px; display: block;" />
       </div>
     `,
-    size: new window.naver.maps.Size(34, 34),
-    anchor: new window.naver.maps.Point(17, 32),
+    anchor: new window.naver.maps.Point(20, 33 + BADGE_ROW_BLOCK_HEIGHT),
   };
 }
 
-function visitedMarkerIcon(): naver.maps.HtmlIcon {
+function reviewedMarkerIcon(distanceM: number | null | undefined, activeViewers: number): naver.maps.HtmlIcon {
+  const badgeRow = badgeRowHtml(distanceM, activeViewers);
   return {
     content: `
-      <div style="
-        width: 34px; height: 34px;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        background: ${colors.green};
-        border: 3px solid #fff;
-        box-shadow: 0 2px 6px rgba(92, 61, 38, 0.35);
-        display: flex; align-items: center; justify-content: center;
-      ">
-        <span style="transform: rotate(45deg); font-size: 15px; line-height: 1;">👣</span>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        ${badgeRow}
+        <div style="
+          width: 34px; height: 34px;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          background: ${colors.yellow};
+          border: 3px solid #fff;
+          box-shadow: 0 2px 6px rgba(92, 61, 38, 0.35);
+          display: flex; align-items: center; justify-content: center;
+        ">
+          <span style="transform: rotate(45deg); font-size: 15px; line-height: 1;">🏆</span>
+        </div>
       </div>
     `,
-    size: new window.naver.maps.Size(34, 34),
-    anchor: new window.naver.maps.Point(17, 32),
+    anchor: new window.naver.maps.Point(17, 32 + (badgeRow ? BADGE_ROW_BLOCK_HEIGHT : 0)),
   };
 }
 
-function activeViewersIcon(count: number): naver.maps.HtmlIcon {
+function visitedMarkerIcon(distanceM: number | null | undefined, activeViewers: number): naver.maps.HtmlIcon {
+  const badgeRow = badgeRowHtml(distanceM, activeViewers);
   return {
     content: `
-      <div style="
-        display: inline-flex; align-items: center; white-space: nowrap;
-        background: ${colors.pink};
-        color: #fff;
-        border: 2px solid #fff;
-        border-radius: 999px;
-        padding: 1px 8px;
-        font-family: 'Jua', sans-serif;
-        font-size: 11px;
-        box-shadow: 0 1px 4px rgba(92, 61, 38, 0.3);
-      ">🔥 ${count}</div>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        ${badgeRow}
+        <div style="
+          width: 34px; height: 34px;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          background: ${colors.green};
+          border: 3px solid #fff;
+          box-shadow: 0 2px 6px rgba(92, 61, 38, 0.35);
+          display: flex; align-items: center; justify-content: center;
+        ">
+          <span style="transform: rotate(45deg); font-size: 15px; line-height: 1;">👣</span>
+        </div>
+      </div>
     `,
-    anchor: new window.naver.maps.Point(-4, -8),
-  };
-}
-
-function distanceLabelIcon(distanceM: number): naver.maps.HtmlIcon {
-  const text = formatDistance(distanceM);
-  return {
-    content: `
-      <div style="
-        display: inline-flex; white-space: nowrap;
-        background: #fff;
-        color: ${colors.brown};
-        border: 1px solid ${colors.creamDeep};
-        border-radius: 999px;
-        padding: 1px 7px;
-        font-family: 'Jua', sans-serif;
-        font-size: 11px;
-        box-shadow: 0 1px 4px rgba(92, 61, 38, 0.25);
-      ">${text}</div>
-    `,
-    anchor: new window.naver.maps.Point(-4, 56),
+    anchor: new window.naver.maps.Point(17, 32 + (badgeRow ? BADGE_ROW_BLOCK_HEIGHT : 0)),
   };
 }
 
@@ -117,6 +148,9 @@ function currentLocationIcon(): naver.maps.HtmlIcon {
     anchor: new window.naver.maps.Point(11, 11),
   };
 }
+
+// 지도를 축소해서 축척이 대략 1,000m를 넘어가면(줌 12 미만) "지금 보는 중" 배지는 마커가 너무 빽빽해 보여서 숨긴다.
+const ACTIVE_VIEWER_BADGE_MIN_ZOOM = 12;
 
 const DEFAULT_CENTER = { lat: 36.5, lng: 127.8 }; // 대한민국 중심 근방
 
@@ -158,6 +192,7 @@ export function NaverMap({
   const markersRef = useRef<naver.maps.Marker[]>([]);
   const pinMarkerRef = useRef<naver.maps.Marker | null>(null);
   const currentLocationMarkerRef = useRef<naver.maps.Marker | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(initialZoom);
 
   useEffect(() => {
     if (!loaded || !containerRef.current || mapRef.current) return;
@@ -172,20 +207,32 @@ export function NaverMap({
 
   useEffect(() => {
     if (!loaded || !mapRef.current) return;
+    const listener = window.naver.maps.Event.addListener(mapRef.current, "zoom_changed", () => {
+      setZoomLevel(mapRef.current!.getZoom());
+    });
+    return () => {
+      window.naver.maps.Event.removeListener(listener);
+    };
+  }, [loaded]);
 
+  useEffect(() => {
+    if (!loaded || !mapRef.current) return;
+
+    const showActiveViewers = zoomLevel >= ACTIVE_VIEWER_BADGE_MIN_ZOOM;
     markersRef.current.forEach((marker) => marker.setMap(null));
     const newMarkers: naver.maps.Marker[] = [];
     playgrounds.forEach((playground) => {
       const position = new window.naver.maps.LatLng(playground.latitude, playground.longitude);
+      const activeViewers = showActiveViewers ? playground.active_viewers : 0;
       const marker = new window.naver.maps.Marker({
         position,
         map: mapRef.current!,
         title: playground.name,
         icon: playground.reviewed_by_me
-          ? reviewedMarkerIcon()
+          ? reviewedMarkerIcon(playground.distanceM, activeViewers)
           : playground.visited_by_me
-            ? visitedMarkerIcon()
-            : notVisitedMarkerIcon(),
+            ? visitedMarkerIcon(playground.distanceM, activeViewers)
+            : notVisitedMarkerIcon(playground.distanceM, activeViewers),
       });
       if (onSelect) {
         window.naver.maps.Event.addListener(marker, "click", () => {
@@ -197,31 +244,9 @@ export function NaverMap({
         });
       }
       newMarkers.push(marker);
-
-      if (typeof playground.distanceM === "number") {
-        newMarkers.push(
-          new window.naver.maps.Marker({
-            position,
-            map: mapRef.current!,
-            icon: distanceLabelIcon(playground.distanceM),
-            clickable: false,
-          }),
-        );
-      }
-
-      if (playground.active_viewers > 0) {
-        newMarkers.push(
-          new window.naver.maps.Marker({
-            position,
-            map: mapRef.current!,
-            icon: activeViewersIcon(playground.active_viewers),
-            clickable: false,
-          }),
-        );
-      }
     });
     markersRef.current = newMarkers;
-  }, [loaded, playgrounds, onSelect, onInteractionBlocked]);
+  }, [loaded, playgrounds, onSelect, onInteractionBlocked, zoomLevel]);
 
   useEffect(() => {
     if (!loaded || !mapRef.current || !onInteractionBlocked) return;
