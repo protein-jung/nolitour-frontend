@@ -73,6 +73,9 @@ export function NavBar() {
         <Link to="/rankings/playgrounds" style={navLinkStyle}>
           🔥 인기 놀이터
         </Link>
+        <Link to="/calendar" style={navLinkStyle}>
+          🗓 놀이터린더
+        </Link>
       </div>
 
       <div className="navbar-links" style={{ marginLeft: "auto", gap: 12 }}>
@@ -163,6 +166,9 @@ export function NavBar() {
         </Link>
         <Link to="/rankings/playgrounds" style={mobileNavLinkStyle}>
           🔥 인기 놀이터
+        </Link>
+        <Link to="/calendar" style={mobileNavLinkStyle}>
+          🗓 놀이터린더
         </Link>
         {user ? (
           <>

@@ -15,6 +15,7 @@ import { AdminUserDetailPage } from "./pages/AdminUserDetailPage";
 import { ReporterRankingPage } from "./pages/ReporterRankingPage";
 import { VisitorRankingPage } from "./pages/VisitorRankingPage";
 import { PlaygroundRankingPage } from "./pages/PlaygroundRankingPage";
+import { CalendarPage } from "./pages/CalendarPage";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/rankings/reporters" element={<ReporterRankingPage />} />
           <Route path="/rankings/visitors" element={<VisitorRankingPage />} />
           <Route path="/rankings/playgrounds" element={<PlaygroundRankingPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
         </Routes>

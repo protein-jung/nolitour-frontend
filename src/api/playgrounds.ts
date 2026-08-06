@@ -5,6 +5,8 @@ import type {
   CommentReply,
   EquipmentType,
   LikeStatus,
+  MyReview,
+  MyVisit,
   Playground,
   PlaygroundComment,
   PlaygroundCreate,
@@ -97,6 +99,16 @@ export async function uploadPlaygroundImage(
 
 export async function fetchMyPlaygrounds(): Promise<Playground[]> {
   const { data } = await apiClient.get<Playground[]>("/playgrounds/mine");
+  return data;
+}
+
+export async function fetchMyVisits(): Promise<MyVisit[]> {
+  const { data } = await apiClient.get<MyVisit[]>("/playgrounds/mine/visits");
+  return data;
+}
+
+export async function fetchMyReviews(): Promise<MyReview[]> {
+  const { data } = await apiClient.get<MyReview[]>("/playgrounds/mine/reviews");
   return data;
 }
 

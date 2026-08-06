@@ -325,6 +325,22 @@ export interface VisitResult {
   distance_m: number;
 }
 
+export interface MyVisit {
+  id: string;
+  playground_id: string;
+  playground_name: string;
+  created_at: string;
+}
+
+export interface MyReview {
+  id: string;
+  playground_id: string;
+  playground_name: string;
+  content: string;
+  rating: number | null;
+  created_at: string;
+}
+
 export interface FieldChange {
   old: unknown;
   new: unknown;
