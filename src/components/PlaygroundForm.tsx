@@ -24,6 +24,7 @@ import {
   ROAD_SAFETY_LABEL,
   SHADE_LEVEL_LABEL,
   SMOKING_STATUS_LABEL,
+  SPORTS_FACILITY_LABEL,
   SURFACE_TYPE_LABEL,
   WHEELED_ACCESS_LABEL,
   type AccessLevel,
@@ -45,6 +46,7 @@ import {
   type RoadSafetyLevel,
   type ShadeLevel,
   type SmokingStatus,
+  type SportsFacility,
   type SurfaceType,
   type WheeledAccessType,
 } from "../types/playground";
@@ -59,6 +61,7 @@ const RESTROOM_TYPES = Object.keys(RESTROOM_LABEL) as RestroomType[];
 const PARKING_TYPES = Object.keys(PARKING_LABEL) as ParkingType[];
 const FENCE_TYPES = Object.keys(FENCE_LABEL) as FenceType[];
 const EQUIPMENT_TYPES = Object.keys(EQUIPMENT_LABEL) as EquipmentType[];
+const SPORTS_FACILITIES = Object.keys(SPORTS_FACILITY_LABEL) as SportsFacility[];
 const CONDITION_STATUSES = Object.keys(CONDITION_STATUS_LABEL) as ConditionStatus[];
 const PLAYGROUND_SIZES = Object.keys(PLAYGROUND_SIZE_LABEL) as PlaygroundSize[];
 const PLAY_DURATIONS = Object.keys(PLAY_DURATION_LABEL) as PlayDuration[];
@@ -122,6 +125,7 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
   const [strollerAccessible, setStrollerAccessible] = useState(initial?.stroller_accessible ?? false);
   const [wheelchairAccessible, setWheelchairAccessible] = useState(initial?.wheelchair_accessible ?? false);
   const [equipment, setEquipment] = useState<EquipmentType[]>(initial?.equipment ?? []);
+  const [sportsFacilities, setSportsFacilities] = useState<SportsFacility[]>(initial?.sports_facilities ?? []);
 
   const [conditionStatus, setConditionStatus] = useState<ConditionStatus | "">(initial?.condition_status ?? "");
   const [size, setSize] = useState<PlaygroundSize | "">(initial?.size ?? "");
@@ -162,6 +166,10 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
 
   function toggleEquipment(eq: EquipmentType) {
     setEquipment((prev) => (prev.includes(eq) ? prev.filter((v) => v !== eq) : [...prev, eq]));
+  }
+
+  function toggleSportsFacility(f: SportsFacility) {
+    setSportsFacilities((prev) => (prev.includes(f) ? prev.filter((v) => v !== f) : [...prev, f]));
   }
 
   function toggleInArray<T>(setter: (updater: (prev: T[]) => T[]) => void, value: T) {
@@ -258,6 +266,7 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
           stroller_accessible: strollerAccessible,
           wheelchair_accessible: wheelchairAccessible,
           equipment: equipment.length ? equipment : null,
+          sports_facilities: sportsFacilities.length ? sportsFacilities : null,
           condition_status: conditionStatus || null,
           size: size || null,
           play_duration: playDuration || null,
@@ -523,6 +532,22 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
             <label key={eq} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14 }}>
               <input type="checkbox" checked={equipment.includes(eq)} onChange={() => toggleEquipment(eq)} />
               {EQUIPMENT_LABEL[eq]}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset style={{ border: `2px solid ${colors.creamDeep}`, borderRadius: radius.md, padding: 14 }}>
+        <legend style={{ padding: "0 6px", color: colors.brown, fontWeight: 600 }}>부가 시설 (복수 선택 가능)</legend>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+          {SPORTS_FACILITIES.map((f) => (
+            <label key={f} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14 }}>
+              <input
+                type="checkbox"
+                checked={sportsFacilities.includes(f)}
+                onChange={() => toggleSportsFacility(f)}
+              />
+              {SPORTS_FACILITY_LABEL[f]}
             </label>
           ))}
         </div>

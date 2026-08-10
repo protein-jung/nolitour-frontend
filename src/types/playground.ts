@@ -106,6 +106,26 @@ export const EQUIPMENT_LABEL: Record<EquipmentType, string> = {
   water_play: "물놀이",
 };
 
+// 부가 시설 (놀이터 주변에 함께 있는 운동·편의 시설)
+export type SportsFacility =
+  | "soccer_field"
+  | "basketball_court"
+  | "badminton_court"
+  | "volleyball_court"
+  | "grass_field"
+  | "outdoor_gym"
+  | "gateball_court";
+
+export const SPORTS_FACILITY_LABEL: Record<SportsFacility, string> = {
+  soccer_field: "축구장",
+  basketball_court: "농구장",
+  badminton_court: "배드민턴장",
+  volleyball_court: "배구장",
+  grass_field: "잔디밭",
+  outdoor_gym: "야외 운동기구",
+  gateball_court: "게이트볼장",
+};
+
 // 관리 상태
 export type ConditionStatus = "very_clean" | "average" | "needs_care";
 
@@ -256,6 +276,7 @@ export interface Playground {
   stroller_accessible: boolean | null;
   wheelchair_accessible: boolean | null;
   equipment: EquipmentType[] | null;
+  sports_facilities: SportsFacility[] | null;
 
   // 관리 상태 · 규모 · 놀이시간 · 추천
   condition_status: ConditionStatus | null;

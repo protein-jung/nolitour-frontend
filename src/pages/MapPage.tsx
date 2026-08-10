@@ -37,6 +37,7 @@ import {
   ROAD_SAFETY_LABEL,
   SHADE_LEVEL_LABEL,
   SMOKING_STATUS_LABEL,
+  SPORTS_FACILITY_LABEL,
   SURFACE_TYPE_LABEL,
   WHEELED_ACCESS_LABEL,
 } from "../types/playground";
@@ -641,6 +642,17 @@ export function MapPage() {
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {selected.equipment.map((eq) => (
                   <Tag key={eq} color={colors.brown}>{EQUIPMENT_LABEL[eq]}</Tag>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selected.sports_facilities && selected.sports_facilities.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <h3 style={{ fontSize: 14 }}>부가 시설</h3>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {selected.sports_facilities.map((f) => (
+                  <Tag key={f} color={colors.blue}>{SPORTS_FACILITY_LABEL[f]}</Tag>
                 ))}
               </div>
             </div>
