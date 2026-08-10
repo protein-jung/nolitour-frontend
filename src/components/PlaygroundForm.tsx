@@ -1,5 +1,5 @@
 import { useRef, useState, type CSSProperties, type FormEvent } from "react";
-import { NaverMap, type LatLngLiteral } from "./NaverMap";
+import { NaverMap, type LatLngLiteral, type NaverMapHandle } from "./NaverMap";
 import { useNaverMapsScript } from "../hooks/useNaverMapsScript";
 import { useKakaoMapsScript } from "../hooks/useKakaoMapsScript";
 import { reverseGeocode } from "../lib/naverGeocoder";
@@ -72,6 +72,8 @@ const ROAD_SAFETY_LEVELS = Object.keys(ROAD_SAFETY_LABEL) as RoadSafetyLevel[];
 const MOOD_TAGS = Object.keys(MOOD_TAG_LABEL) as MoodTag[];
 
 const SEOUL_CENTER: LatLngLiteral = { lat: 37.5665, lng: 126.978 };
+// 지도 축척 50m 정도로 확대되는 줌 레벨 (MapPage의 NEARBY_ZOOM과 동일)
+const CURRENT_LOCATION_ZOOM = 17;
 
 const labelStyle: CSSProperties = {
   display: "flex",
@@ -104,6 +106,7 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
   const searchDebounceRef = useRef<number | null>(null);
+  const mapHandleRef = useRef<NaverMapHandle>(null);
   const [directions, setDirections] = useState(initial?.directions ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [operatingHours, setOperatingHours] = useState(initial?.operating_hours ?? "");
@@ -204,6 +207,7 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
       async (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setPosition(coords);
+        mapHandleRef.current?.zoomTo(coords, CURRENT_LOCATION_ZOOM);
         const addr = await reverseGeocode(coords);
         if (addr) setAddress(addr);
         setLocating(false);
@@ -379,6 +383,7 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
         </p>
         <div style={{ height: 320, borderRadius: radius.md, overflow: "hidden", border: `2px solid ${colors.creamDeep}` }}>
           <NaverMap
+            ref={mapHandleRef}
             playgrounds={[]}
             onMapClick={handleMapPositionChange}
             pinPosition={position}

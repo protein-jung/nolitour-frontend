@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useNaverMapsScript } from "../hooks/useNaverMapsScript";
 import type { Playground } from "../types/playground";
 import { colors } from "../styles/theme";
@@ -174,7 +174,12 @@ interface NaverMapProps {
   currentLocation?: LatLngLiteral | null;
 }
 
-export function NaverMap({
+export interface NaverMapHandle {
+  /** 지도 중심과 줌 레벨을 즉시 이동시킨다 (예: "현위치로" 버튼 클릭 시 50m 축척으로 확대) */
+  zoomTo: (position: LatLngLiteral, zoom: number) => void;
+}
+
+export const NaverMap = forwardRef<NaverMapHandle, NaverMapProps>(function NaverMap({
   playgrounds,
   onSelect,
   onMapClick,
@@ -183,7 +188,7 @@ export function NaverMap({
   initialZoom = 7,
   onInteractionBlocked,
   currentLocation,
-}: NaverMapProps) {
+}, ref) {
   const clientId = import.meta.env.VITE_NAVER_MAP_CLIENT_ID ?? "";
   const loaded = useNaverMapsScript(clientId);
 
@@ -193,6 +198,14 @@ export function NaverMap({
   const pinMarkerRef = useRef<naver.maps.Marker | null>(null);
   const currentLocationMarkerRef = useRef<naver.maps.Marker | null>(null);
   const [zoomLevel, setZoomLevel] = useState(initialZoom);
+
+  useImperativeHandle(ref, () => ({
+    zoomTo(position, zoom) {
+      if (!mapRef.current) return;
+      mapRef.current.setCenter(new window.naver.maps.LatLng(position.lat, position.lng));
+      mapRef.current.setZoom(zoom);
+    },
+  }));
 
   useEffect(() => {
     if (!loaded || !containerRef.current || mapRef.current) return;
@@ -323,4 +336,4 @@ export function NaverMap({
   }
 
   return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />;
-}
+});
