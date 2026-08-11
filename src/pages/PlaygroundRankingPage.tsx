@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { fetchTopPlaygrounds } from "../api/rankings";
 import type { PlaygroundRankingItem } from "../types/ranking";
 import { cardStyle, colors, radius } from "../styles/theme";
+import { IconFlame } from "../components/Shared";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -19,7 +20,18 @@ export function PlaygroundRankingPage() {
   return (
     <div style={{ background: colors.cream, flex: 1 }}>
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px 80px" }}>
-        <h1 style={{ textAlign: "center" }}>🔥 인기 놀이터</h1>
+        <h1
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            color: colors.pink,
+          }}
+        >
+          <IconFlame size={28} />
+          <span style={{ color: colors.brown }}>인기 놀이터</span>
+        </h1>
         <p style={{ textAlign: "center", color: colors.textMuted, marginBottom: 28 }}>
           좋아요 · 저장 · 조회수 · 별점을 종합한 인기 점수 순위예요
         </p>

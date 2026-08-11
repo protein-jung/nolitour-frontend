@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { ReporterRankingItem } from "../types/ranking";
 import { cardStyle, colors, radius } from "../styles/theme";
@@ -6,7 +6,7 @@ import { cardStyle, colors, radius } from "../styles/theme";
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 interface RankingPageProps {
-  icon: string;
+  icon: ReactNode;
   title: string;
   description: string;
   emptyText: string;
@@ -27,8 +27,17 @@ export function RankingPage({ icon, title, description, emptyText, unit, fetchRa
   return (
     <div style={{ background: colors.cream, flex: 1 }}>
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px 80px" }}>
-        <h1 style={{ textAlign: "center" }}>
-          {icon} {title}
+        <h1
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            color: colors.green,
+          }}
+        >
+          {icon}
+          <span style={{ color: colors.brown }}>{title}</span>
         </h1>
         <p style={{ textAlign: "center", color: colors.textMuted, marginBottom: 28 }}>{description}</p>
 

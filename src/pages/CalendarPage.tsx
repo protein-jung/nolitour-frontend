@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { fetchMyReviews, fetchMyVisits } from "../api/playgrounds";
 import type { MyReview, MyVisit } from "../types/playground";
-import { cardStyle, colors, primaryButtonStyle, radius } from "../styles/theme";
+import { cardStyle, colors, fonts, radius } from "../styles/theme";
+import { IconCalendarDays, LoginGateCard } from "../components/Shared";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -21,7 +22,6 @@ interface DayEntries {
 
 export function CalendarPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [visits, setVisits] = useState<MyVisit[] | null>(null);
   const [reviews, setReviews] = useState<MyReview[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,16 +57,7 @@ export function CalendarPage() {
   }, [visits, reviews]);
 
   if (!user) {
-    return (
-      <div style={{ background: colors.cream, flex: 1, display: "flex" }}>
-        <div style={{ ...cardStyle(), maxWidth: 420, margin: "80px auto", padding: 32, textAlign: "center" }}>
-          <p>놀이터린더는 로그인 후 이용할 수 있습니다.</p>
-          <button type="button" onClick={() => navigate("/login")} style={primaryButtonStyle()}>
-            로그인하러 가기
-          </button>
-        </div>
-      </div>
-    );
+    return <LoginGateCard message="놀이터린더는 로그인 후 이용할 수 있습니다." />;
   }
 
   const year = month.getFullYear();
@@ -93,7 +84,10 @@ export function CalendarPage() {
   return (
     <div style={{ background: colors.cream, flex: 1 }}>
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "40px 24px 80px" }}>
-        <h1>🗓 놀이터린더</h1>
+        <h1 style={{ display: "flex", alignItems: "center", gap: 10, color: colors.green }}>
+          <IconCalendarDays size={28} />
+          <span style={{ color: colors.brown }}>놀이터린더</span>
+        </h1>
         <p style={{ color: colors.textMuted, marginBottom: 24 }}>
           다녀왔거나 후기를 남긴 놀이터를 달력으로 확인해보세요.
         </p>
@@ -269,7 +263,7 @@ const monthNavButtonStyle = {
   color: colors.brown,
   borderRadius: radius.pill,
   padding: "6px 14px",
-  fontFamily: "'Jua', sans-serif",
+  fontFamily: fonts.ui,
   fontSize: 14,
   cursor: "pointer",
 };

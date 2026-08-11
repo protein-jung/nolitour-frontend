@@ -3,6 +3,69 @@ import { Link } from "react-router-dom";
 import logo from "../assets/nolitour_logo.png";
 import { cardStyle, colors, fonts, primaryButtonStyle, radius } from "../styles/theme";
 
+export function IconTrophy({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M7 3h10v4a5 5 0 0 1-4 4.9V14h1.5a1 1 0 1 1 0 2h-5a1 1 0 1 1 0-2H11v-2.1A5 5 0 0 1 7 7V3Z" />
+      <path
+        d="M7 4H4.5A2.5 2.5 0 0 0 7 8.3M17 4h2.5A2.5 2.5 0 0 1 17 8.3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+      <rect x="9" y="17" width="6" height="2" rx="1" />
+    </svg>
+  );
+}
+
+export function IconFootprints({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <ellipse cx="7" cy="7" rx="4" ry="5.4" transform="rotate(-14 7 7)" />
+      <ellipse cx="16.5" cy="16" rx="4" ry="5.4" transform="rotate(12 16.5 16)" />
+    </svg>
+  );
+}
+
+export function IconFlame({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 3 Q18 10 15 15 Q19 16 17 20 Q12 23 7 20 Q5 16 9 15 Q6 10 12 3 Z" />
+    </svg>
+  );
+}
+
+export function IconCalendarDays({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="3.5" y="4.5" width="17" height="16" rx="3" />
+      <path d="M3.5 9.5h17M8 3v3M16 3v3" />
+      <circle cx="8" cy="14" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="14" r="1" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="14" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconWrench({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M14.7 6.3a4 4 0 0 0-5.4 4.9L3 17.5 5.5 20l6.3-6.3a4 4 0 0 0 4.9-5.4l-2.6 2.6-2-2 2.6-2.6Z" />
+    </svg>
+  );
+}
+
 export function LoginGateCard({ message }: { message: string }) {
   return (
     <div style={{ background: colors.cream, flex: 1, display: "flex" }}>
