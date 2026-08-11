@@ -119,6 +119,39 @@ export function IconGrid({ size = 16 }: { size?: number }) {
   );
 }
 
+export function IconList({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+    </svg>
+  );
+}
+
+export function IconFilter({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M3 5h18l-7 8v6l-4 2v-8L3 5Z" />
+    </svg>
+  );
+}
+
+export function IconBookmark({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z" />
+    </svg>
+  );
+}
+
 export function IconCards({ size = 16 }: { size?: number }) {
   return (
     <svg

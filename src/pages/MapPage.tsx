@@ -17,7 +17,7 @@ import {
 } from "../api/playgrounds";
 import type { AgeGroup, EquipmentType, Playground, PlaygroundComment, RiskTag } from "../types/playground";
 import { NAVBAR_HEIGHT } from "../components/NavBar";
-import { colors, primaryButtonStyle, radius, shadow } from "../styles/theme";
+import { colors, fonts, primaryButtonStyle, radius, shadow } from "../styles/theme";
 import {
   ACCESS_LEVEL_LABEL,
   AGE_GROUP_LABEL,
@@ -42,7 +42,19 @@ import {
   WHEELED_ACCESS_LABEL,
 } from "../types/playground";
 import { useAuth } from "../context/AuthContext";
-import { Tag, StarDisplay, StarPicker, VisitStamp } from "../components/Shared";
+import {
+  Tag,
+  StarDisplay,
+  StarPicker,
+  VisitStamp,
+  IconPin,
+  IconList,
+  IconFilter,
+  IconFlame,
+  IconBookmark,
+  IconFootprints,
+  IconTrophy,
+} from "../components/Shared";
 import { FeedMapToggle } from "../components/FeedMapToggle";
 import { PlaygroundListView } from "../components/PlaygroundListView";
 import { extractApiErrorMessage } from "../lib/apiError";
@@ -276,33 +288,39 @@ export function MapPage() {
               type="button"
               onClick={() => setViewMode("map")}
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
                 border: "none",
                 borderRadius: radius.pill,
                 padding: "6px 14px",
-                fontFamily: "'Jua', sans-serif",
+                fontFamily: fonts.ui,
                 fontSize: 13,
                 cursor: "pointer",
                 background: viewMode === "map" ? colors.green : "transparent",
                 color: viewMode === "map" ? "#fff" : colors.brown,
               }}
             >
-              🗺 지도
+              <IconPin size={14} /> 지도
             </button>
             <button
               type="button"
               onClick={() => setViewMode("list")}
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
                 border: "none",
                 borderRadius: radius.pill,
                 padding: "6px 14px",
-                fontFamily: "'Jua', sans-serif",
+                fontFamily: fonts.ui,
                 fontSize: 13,
                 cursor: "pointer",
                 background: viewMode === "list" ? colors.green : "transparent",
                 color: viewMode === "list" ? "#fff" : colors.brown,
               }}
             >
-              📋 리스트
+              <IconList size={14} /> 리스트
             </button>
           </div>
 
@@ -332,14 +350,14 @@ export function MapPage() {
               borderRadius: radius.pill,
               padding: "8px 16px",
               cursor: "pointer",
-              fontFamily: "'Jua', sans-serif",
+              fontFamily: fonts.ui,
               fontSize: 13,
               boxShadow: shadow,
               background: sortPopular ? colors.pink : "#fff",
               color: sortPopular ? "#fff" : colors.brown,
             }}
           >
-            🔥 인기순{sortPopular ? " (적용됨)" : ""}
+            <IconFlame size={14} /> 인기순{sortPopular ? " (적용됨)" : ""}
           </button>
 
           <div style={{ background: "#fff", borderRadius: radius.md, boxShadow: shadow, padding: 12 }}>
@@ -349,7 +367,7 @@ export function MapPage() {
               style={{
                 border: "none",
                 background: "transparent",
-                fontFamily: "'Jua', sans-serif",
+                fontFamily: fonts.ui,
                 fontSize: 14,
                 color: colors.brown,
                 cursor: "pointer",
@@ -359,8 +377,8 @@ export function MapPage() {
                 alignItems: "center",
               }}
             >
-              <span>
-                🔍 필터{activeFilterCount > 0 && ` (${activeFilterCount})`}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <IconFilter size={14} /> 필터{activeFilterCount > 0 && ` (${activeFilterCount})`}
               </span>
               <span>{filterOpen ? "▲" : "▼"}</span>
             </button>
@@ -451,6 +469,9 @@ export function MapPage() {
                   bottom: 16,
                   left: 12,
                   zIndex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
                   background: "#fff",
                   padding: "6px 12px",
                   borderRadius: radius.pill,
@@ -459,7 +480,12 @@ export function MapPage() {
                   color: colors.brown,
                 }}
               >
-                🏆 후기 · 👣 왔다감 표시
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <IconTrophy size={13} /> 후기
+                </span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <IconFootprints size={13} /> 왔다감 표시
+                </span>
               </div>
             )}
           </>
@@ -664,13 +690,16 @@ export function MapPage() {
               onClick={toggleLike}
               disabled={!user}
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
                 border: "none",
                 borderRadius: radius.pill,
                 padding: "8px 16px",
                 cursor: user ? "pointer" : "default",
                 background: selected.liked_by_me ? colors.pink : colors.cream,
                 color: selected.liked_by_me ? "#fff" : colors.brown,
-                fontFamily: "'Jua', sans-serif",
+                fontFamily: fonts.ui,
               }}
             >
               ♥ 좋아요 {selected.like_count ?? 0}
@@ -681,16 +710,19 @@ export function MapPage() {
               onClick={toggleSave}
               disabled={!user}
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
                 border: "none",
                 borderRadius: radius.pill,
                 padding: "8px 16px",
                 cursor: user ? "pointer" : "default",
                 background: selected.saved_by_me ? colors.yellow : colors.cream,
                 color: selected.saved_by_me ? "#fff" : colors.brown,
-                fontFamily: "'Jua', sans-serif",
+                fontFamily: fonts.ui,
               }}
             >
-              🔖 저장 {selected.save_count ?? 0}
+              <IconBookmark size={14} /> 저장 {selected.save_count ?? 0}
             </button>
 
             {user && (
@@ -699,20 +731,25 @@ export function MapPage() {
                 onClick={checkIn}
                 disabled={checkingIn || selected.visited_by_me}
                 style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
                   border: "none",
                   borderRadius: radius.pill,
                   padding: "8px 16px",
                   cursor: checkingIn || selected.visited_by_me ? "default" : "pointer",
                   background: selected.visited_by_me ? colors.green : colors.cream,
                   color: selected.visited_by_me ? "#fff" : colors.brown,
-                  fontFamily: "'Jua', sans-serif",
+                  fontFamily: fonts.ui,
                 }}
               >
-                {selected.visited_by_me
-                  ? "👣 왔다감 완료"
-                  : checkingIn
-                    ? "위치 확인 중..."
-                    : "👣 왔다감 체크"}
+                {checkingIn ? (
+                  "위치 확인 중..."
+                ) : (
+                  <>
+                    <IconFootprints size={14} /> {selected.visited_by_me ? "왔다감 완료" : "왔다감 체크"}
+                  </>
+                )}
               </button>
             )}
           </div>
