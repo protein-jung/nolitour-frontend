@@ -1,16 +1,18 @@
 :root {
-  --green: #8bc558;
-  --green-dark: #6ea83f;
-  --yellow: #fec81b;
+  --green: #57a13f;
+  --green-dark: #376b26;
+  --yellow: #ffb627;
   --blue: #4991cc;
-  --pink: #fc8c8f;
-  --cream: #fff8ea;
-  --cream-deep: #feebd3;
+  --pink: #ff7a62;
+  --cream: #fbf1de;
+  --cream-deep: #f3dab3;
   --brown: #5c3d26;
-  --text: #3d2c1e;
-  --text-muted: #8a7a6c;
+  --text: #2e2a22;
+  --text-muted: #87796a;
 
-  --heading: "Jua", "Apple SD Gothic Neo", sans-serif;
+  --display: "Jua", "Apple SD Gothic Neo", sans-serif;
+  --heading: "Do Hyeon", "Apple SD Gothic Neo", sans-serif;
+  --hand: "Gaegu", "Apple SD Gothic Neo", sans-serif;
   --sans: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 
   font: 16px/1.6 var(--sans);
@@ -39,14 +41,19 @@ body {
 h1,
 h2,
 h3 {
-  font-family: var(--heading);
   font-weight: 400;
   color: var(--brown);
 }
 
 h1 {
+  font-family: var(--display);
   font-size: 40px;
   margin: 0 0 12px;
+}
+
+h2,
+h3 {
+  font-family: var(--heading);
 }
 
 h2 {
@@ -72,6 +79,11 @@ select {
   font-family: var(--sans);
 }
 
+:focus-visible {
+  outline: 2px solid var(--green-dark);
+  outline-offset: 2px;
+}
+
 @keyframes heartBurst {
   0% {
     opacity: 0;
@@ -87,6 +99,82 @@ select {
   100% {
     opacity: 0;
     transform: scale(1);
+  }
+}
+
+/* ---- Home hero: map panel that "fills in" with pins ---- */
+
+.home-hero {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.home-signboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px 40px;
+}
+
+@keyframes pinDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(2px) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chipIn {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-map-pin {
+  opacity: 1;
+  transform-origin: bottom center;
+}
+
+.home-map-label {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-map-pin {
+    opacity: 0;
+    animation: pinDrop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: var(--pin-delay, 0s);
+  }
+  .home-map-label {
+    opacity: 0;
+    animation: chipIn 0.4s ease-out forwards;
+    animation-delay: 1.2s;
+  }
+}
+
+@media (max-width: 760px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-signboard-grid {
+    grid-template-columns: 1fr;
   }
 }
 

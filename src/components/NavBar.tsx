@@ -2,15 +2,21 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/nolitour_logo.png";
-import { colors, radius } from "../styles/theme";
+import { colors, fonts, radius } from "../styles/theme";
 
 const navLinkStyle = {
   color: colors.brown,
   textDecoration: "none",
-  fontFamily: "'Jua', sans-serif",
+  fontFamily: fonts.ui,
   fontSize: 15,
   padding: "6px 14px",
   borderRadius: radius.pill,
+  transition: "background 0.15s ease, color 0.15s ease",
+};
+
+const navLinkActiveStyle = {
+  background: colors.cream,
+  color: colors.greenDark,
 };
 
 const mobileNavLinkStyle = {
@@ -20,6 +26,15 @@ const mobileNavLinkStyle = {
   width: "100%",
   boxSizing: "border-box" as const,
 };
+
+const NAV_ITEMS = [
+  { to: "/map", label: "지도" },
+  { to: "/report", label: "놀이터 제보" },
+  { to: "/rankings/reporters", label: "🏆 제보왕" },
+  { to: "/rankings/visitors", label: "👣 왔다감왕" },
+  { to: "/rankings/playgrounds", label: "🔥 인기 놀이터" },
+  { to: "/calendar", label: "🗓 놀이터린더" },
+];
 
 export const NAVBAR_HEIGHT = 64;
 
@@ -33,6 +48,9 @@ export function NavBar() {
     setMenuOpen(false);
   }, [location.pathname]);
 
+  const isActive = (path: string) =>
+    location.pathname === path || location.pathname.startsWith(`${path}/`);
+
   return (
     <nav
       style={{
@@ -44,48 +62,57 @@ export function NavBar() {
         height: NAVBAR_HEIGHT,
         boxSizing: "border-box",
         background: "#fff",
-        borderBottom: `3px solid ${colors.creamDeep}`,
       }}
     >
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 3,
+          backgroundImage: `repeating-linear-gradient(90deg, ${colors.yellow} 0 16px, ${colors.green} 16px 32px)`,
+          opacity: 0.85,
+        }}
+      />
+
       <Link
         to="/"
         style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}
       >
         <img src={logo} alt="놀이투어" style={{ height: 40, width: 40, objectFit: "contain" }} />
-        <span style={{ fontFamily: "'Jua', sans-serif", fontSize: 20, color: colors.brown }}>
+        <span style={{ fontFamily: fonts.display, fontSize: 20, color: colors.brown }}>
           놀이투어
         </span>
       </Link>
 
       <div className="navbar-links" style={{ marginLeft: 8 }}>
-        <Link to="/map" style={navLinkStyle}>
-          지도
-        </Link>
-        <Link to="/report" style={navLinkStyle}>
-          놀이터 제보
-        </Link>
-        <Link to="/rankings/reporters" style={navLinkStyle}>
-          🏆 제보왕
-        </Link>
-        <Link to="/rankings/visitors" style={navLinkStyle}>
-          👣 왔다감왕
-        </Link>
-        <Link to="/rankings/playgrounds" style={navLinkStyle}>
-          🔥 인기 놀이터
-        </Link>
-        <Link to="/calendar" style={navLinkStyle}>
-          🗓 놀이터린더
-        </Link>
+        {NAV_ITEMS.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            style={isActive(item.to) ? { ...navLinkStyle, ...navLinkActiveStyle } : navLinkStyle}
+          >
+            {item.label}
+          </Link>
+        ))}
       </div>
 
       <div className="navbar-links" style={{ marginLeft: "auto", gap: 12 }}>
         {user ? (
           <>
-            <Link to="/mypage" style={navLinkStyle}>
+            <Link
+              to="/mypage"
+              style={isActive("/mypage") ? { ...navLinkStyle, ...navLinkActiveStyle } : navLinkStyle}
+            >
               마이페이지
             </Link>
             {user.is_admin && (
-              <Link to="/admin" style={navLinkStyle}>
+              <Link
+                to="/admin"
+                style={isActive("/admin") ? { ...navLinkStyle, ...navLinkActiveStyle } : navLinkStyle}
+              >
                 🛠 관리자
               </Link>
             )}
@@ -102,7 +129,7 @@ export function NavBar() {
                 color: colors.brown,
                 borderRadius: radius.pill,
                 padding: "6px 14px",
-                fontFamily: "'Jua', sans-serif",
+                fontFamily: fonts.ui,
                 fontSize: 14,
                 cursor: "pointer",
               }}
@@ -152,31 +179,40 @@ export function NavBar() {
           zIndex: 30,
         }}
       >
-        <Link to="/map" style={mobileNavLinkStyle}>
-          지도
-        </Link>
-        <Link to="/report" style={mobileNavLinkStyle}>
-          놀이터 제보
-        </Link>
-        <Link to="/rankings/reporters" style={mobileNavLinkStyle}>
-          🏆 제보왕
-        </Link>
-        <Link to="/rankings/visitors" style={mobileNavLinkStyle}>
-          👣 왔다감왕
-        </Link>
-        <Link to="/rankings/playgrounds" style={mobileNavLinkStyle}>
-          🔥 인기 놀이터
-        </Link>
-        <Link to="/calendar" style={mobileNavLinkStyle}>
-          🗓 놀이터린더
-        </Link>
+        {NAV_ITEMS.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            style={
+              isActive(item.to)
+                ? { ...mobileNavLinkStyle, ...navLinkActiveStyle }
+                : mobileNavLinkStyle
+            }
+          >
+            {item.label}
+          </Link>
+        ))}
         {user ? (
           <>
-            <Link to="/mypage" style={mobileNavLinkStyle}>
+            <Link
+              to="/mypage"
+              style={
+                isActive("/mypage")
+                  ? { ...mobileNavLinkStyle, ...navLinkActiveStyle }
+                  : mobileNavLinkStyle
+              }
+            >
               마이페이지
             </Link>
             {user.is_admin && (
-              <Link to="/admin" style={mobileNavLinkStyle}>
+              <Link
+                to="/admin"
+                style={
+                  isActive("/admin")
+                    ? { ...mobileNavLinkStyle, ...navLinkActiveStyle }
+                    : mobileNavLinkStyle
+                }
+              >
                 🛠 관리자
               </Link>
             )}
@@ -195,7 +231,7 @@ export function NavBar() {
                 color: colors.brown,
                 borderRadius: radius.pill,
                 padding: "10px 16px",
-                fontFamily: "'Jua', sans-serif",
+                fontFamily: fonts.ui,
                 fontSize: 15,
                 cursor: "pointer",
                 marginTop: 8,
