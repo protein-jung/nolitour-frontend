@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { fetchMyPlaygrounds } from "../api/playgrounds";
 import type { Playground } from "../types/playground";
 import { PLAYGROUND_TYPE_LABEL } from "../types/playground";
-import { cardStyle, colors, primaryButtonStyle, radius } from "../styles/theme";
+import { cardStyle, colors, radius } from "../styles/theme";
+import { LoginGateCard } from "../components/Shared";
 
 export function MyPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [playgrounds, setPlaygrounds] = useState<Playground[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
@@ -21,16 +20,7 @@ export function MyPage() {
   }, [user]);
 
   if (!user) {
-    return (
-      <div style={{ background: colors.cream, flex: 1, display: "flex" }}>
-        <div style={{ ...cardStyle(), maxWidth: 420, margin: "80px auto", padding: 32, textAlign: "center" }}>
-          <p>마이페이지는 로그인 후 이용할 수 있습니다.</p>
-          <button type="button" onClick={() => navigate("/login")} style={primaryButtonStyle()}>
-            로그인하러 가기
-          </button>
-        </div>
-      </div>
-    );
+    return <LoginGateCard message="마이페이지는 로그인 후 이용할 수 있습니다." />;
   }
 
   return (

@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import logo from "../assets/nolitour_logo.png";
-import { cardStyle, colors, inputStyle, primaryButtonStyle } from "../styles/theme";
+import { colors, inputStyle, primaryButtonStyle } from "../styles/theme";
 import { extractApiErrorMessage } from "../lib/apiError";
+import { AuthCard, Field } from "../components/Shared";
 
 export function RegisterPage() {
   const { register } = useAuth();
@@ -31,56 +31,54 @@ export function RegisterPage() {
   }
 
   return (
-    <div style={{ background: colors.cream, flex: 1, display: "flex" }}>
-      <div style={{ ...cardStyle(), maxWidth: 360, margin: "72px auto", padding: 32, width: "100%" }}>
-        <div style={{ textAlign: "center", marginBottom: 8 }}>
-          <img src={logo} alt="놀이투어" style={{ width: 72, height: 72, objectFit: "contain" }} />
-        </div>
-        <h1 style={{ textAlign: "center", fontSize: 26 }}>회원가입</h1>
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <AuthCard heading="회원가입">
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <Field label="이름">
           <input
-            style={inputStyle()}
+            style={{ ...inputStyle(), width: "100%", boxSizing: "border-box" }}
             type="text"
-            placeholder="이름"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
+        </Field>
+        <Field label="닉네임 (서비스에 표시될 이름)">
           <input
-            style={inputStyle()}
+            style={{ ...inputStyle(), width: "100%", boxSizing: "border-box" }}
             type="text"
-            placeholder="닉네임 (서비스에 표시될 이름)"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             maxLength={20}
             required
           />
+        </Field>
+        <Field label="휴대폰 번호 (- 없이 입력)">
           <input
-            style={inputStyle()}
+            style={{ ...inputStyle(), width: "100%", boxSizing: "border-box" }}
             type="tel"
-            placeholder="휴대폰 번호 (- 없이 입력)"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
           />
+        </Field>
+        <Field label="비밀번호 (8자 이상)">
           <input
-            style={inputStyle()}
+            style={{ ...inputStyle(), width: "100%", boxSizing: "border-box" }}
             type="password"
-            placeholder="비밀번호 (8자 이상)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             minLength={8}
             required
           />
-          {error && <p style={{ color: colors.pink }}>{error}</p>}
-          <button type="submit" disabled={submitting} style={primaryButtonStyle(submitting)}>
-            {submitting ? "가입 중..." : "회원가입"}
-          </button>
-        </form>
-        <p style={{ marginTop: 16, textAlign: "center", fontSize: 14 }}>
-          이미 계정이 있으신가요? <Link to="/login">로그인</Link>
-        </p>
-      </div>
-    </div>
+        </Field>
+        {error && <p style={{ color: colors.pink, fontSize: 13.5 }}>{error}</p>}
+        <button type="submit" disabled={submitting} style={{ ...primaryButtonStyle(submitting), width: "100%" }}>
+          {submitting ? "가입 중..." : "회원가입"}
+        </button>
+      </form>
+      <p style={{ marginTop: 16, textAlign: "center", fontSize: 14 }}>
+        이미 계정이 있으신가요? <Link to="/login">로그인</Link>
+      </p>
+    </AuthCard>
   );
 }

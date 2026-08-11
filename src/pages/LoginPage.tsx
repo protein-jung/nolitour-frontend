@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import logo from "../assets/nolitour_logo.png";
-import { cardStyle, colors, inputStyle, primaryButtonStyle } from "../styles/theme";
+import { colors, inputStyle, primaryButtonStyle } from "../styles/theme";
+import { AuthCard, Field } from "../components/Shared";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -28,38 +28,34 @@ export function LoginPage() {
   }
 
   return (
-    <div style={{ background: colors.cream, flex: 1, display: "flex" }}>
-      <div style={{ ...cardStyle(), maxWidth: 360, margin: "72px auto", padding: 32, width: "100%" }}>
-        <div style={{ textAlign: "center", marginBottom: 8 }}>
-          <img src={logo} alt="놀이투어" style={{ width: 72, height: 72, objectFit: "contain" }} />
-        </div>
-        <h1 style={{ textAlign: "center", fontSize: 26 }}>로그인</h1>
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <AuthCard heading="로그인">
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <Field label="휴대폰 번호">
           <input
-            style={inputStyle()}
+            style={{ ...inputStyle(), width: "100%", boxSizing: "border-box" }}
             type="tel"
-            placeholder="휴대폰 번호"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
           />
+        </Field>
+        <Field label="비밀번호">
           <input
-            style={inputStyle()}
+            style={{ ...inputStyle(), width: "100%", boxSizing: "border-box" }}
             type="password"
-            placeholder="비밀번호"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {error && <p style={{ color: colors.pink }}>{error}</p>}
-          <button type="submit" disabled={submitting} style={primaryButtonStyle(submitting)}>
-            {submitting ? "로그인 중..." : "로그인"}
-          </button>
-        </form>
-        <p style={{ marginTop: 16, textAlign: "center", fontSize: 14 }}>
-          계정이 없으신가요? <Link to="/register">회원가입</Link>
-        </p>
-      </div>
-    </div>
+        </Field>
+        {error && <p style={{ color: colors.pink, fontSize: 13.5 }}>{error}</p>}
+        <button type="submit" disabled={submitting} style={{ ...primaryButtonStyle(submitting), width: "100%" }}>
+          {submitting ? "로그인 중..." : "로그인"}
+        </button>
+      </form>
+      <p style={{ marginTop: 16, textAlign: "center", fontSize: 14 }}>
+        계정이 없으신가요? <Link to="/register">회원가입</Link>
+      </p>
+    </AuthCard>
   );
 }

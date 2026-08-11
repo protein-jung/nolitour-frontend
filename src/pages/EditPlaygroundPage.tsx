@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { PlaygroundForm } from "../components/PlaygroundForm";
+import { LoginGateCard } from "../components/Shared";
 import { fetchPlayground, updatePlayground, uploadPlaygroundImage } from "../api/playgrounds";
 import type { Playground, PlaygroundCreate } from "../types/playground";
-import { cardStyle, colors, primaryButtonStyle } from "../styles/theme";
+import { cardStyle, colors } from "../styles/theme";
 
 export function EditPlaygroundPage() {
   const { user } = useAuth();
@@ -22,16 +23,7 @@ export function EditPlaygroundPage() {
   }, [id]);
 
   if (!user) {
-    return (
-      <div style={{ background: colors.cream, flex: 1, display: "flex" }}>
-        <div style={{ ...cardStyle(), maxWidth: 420, margin: "80px auto", padding: 32, textAlign: "center" }}>
-          <p>놀이터 정보 수정은 로그인 후 이용할 수 있습니다.</p>
-          <button type="button" onClick={() => navigate("/login")} style={primaryButtonStyle()}>
-            로그인하러 가기
-          </button>
-        </div>
-      </div>
-    );
+    return <LoginGateCard message="놀이터 정보 수정은 로그인 후 이용할 수 있습니다." />;
   }
 
   if (loadError) {

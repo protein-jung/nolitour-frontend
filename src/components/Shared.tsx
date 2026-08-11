@@ -1,5 +1,60 @@
 import type { ReactNode } from "react";
-import { colors, radius } from "../styles/theme";
+import { Link } from "react-router-dom";
+import logo from "../assets/nolitour_logo.png";
+import { cardStyle, colors, fonts, primaryButtonStyle, radius } from "../styles/theme";
+
+export function LoginGateCard({ message }: { message: string }) {
+  return (
+    <div style={{ background: colors.cream, flex: 1, display: "flex" }}>
+      <div style={{ ...cardStyle(), maxWidth: 420, margin: "80px auto", padding: 32, textAlign: "center" }}>
+        <p style={{ marginBottom: 20 }}>{message}</p>
+        <Link to="/login" style={primaryButtonStyle()}>
+          로그인하러 가기
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export function AuthCard({ heading, children }: { heading: string; children: ReactNode }) {
+  return (
+    <div style={{ background: colors.cream, flex: 1, display: "flex" }}>
+      <div
+        style={{
+          ...cardStyle(),
+          maxWidth: 380,
+          margin: "64px auto",
+          width: "100%",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          aria-hidden
+          style={{
+            height: 4,
+            backgroundImage: `repeating-linear-gradient(90deg, ${colors.yellow} 0 16px, ${colors.green} 16px 32px)`,
+          }}
+        />
+        <div style={{ padding: "32px 32px 28px" }}>
+          <div style={{ textAlign: "center", marginBottom: 8 }}>
+            <img src={logo} alt="놀이투어" style={{ width: 72, height: 72, objectFit: "contain" }} />
+          </div>
+          <h1 style={{ textAlign: "center", fontSize: 26, marginBottom: 20 }}>{heading}</h1>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+      <span style={{ fontFamily: fonts.ui, fontSize: 12.5, color: colors.textMuted }}>{label}</span>
+      {children}
+    </label>
+  );
+}
 
 const AVATAR_PALETTE = [colors.green, colors.blue, colors.pink, colors.yellow, colors.brown, colors.greenDark];
 

@@ -1,25 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { PlaygroundForm } from "../components/PlaygroundForm";
+import { LoginGateCard } from "../components/Shared";
 import { createPlayground, uploadPlaygroundImage } from "../api/playgrounds";
 import type { PlaygroundCreate } from "../types/playground";
-import { cardStyle, colors, primaryButtonStyle } from "../styles/theme";
+import { colors } from "../styles/theme";
 
 export function ReportPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   if (!user) {
-    return (
-      <div style={{ background: colors.cream, flex: 1, display: "flex" }}>
-        <div style={{ ...cardStyle(), maxWidth: 420, margin: "80px auto", padding: 32, textAlign: "center" }}>
-          <p>놀이터 제보는 로그인 후 이용할 수 있습니다.</p>
-          <button type="button" onClick={() => navigate("/login")} style={primaryButtonStyle()}>
-            로그인하러 가기
-          </button>
-        </div>
-      </div>
-    );
+    return <LoginGateCard message="놀이터 제보는 로그인 후 이용할 수 있습니다." />;
   }
 
   async function handleSubmit(payload: PlaygroundCreate, photos: File[]) {
