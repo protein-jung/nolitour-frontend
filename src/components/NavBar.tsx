@@ -1,8 +1,81 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/nolitour_logo.png";
 import { colors, fonts, radius } from "../styles/theme";
+
+function IconTrophy() {
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M7 3h10v4a5 5 0 0 1-4 4.9V14h1.5a1 1 0 1 1 0 2h-5a1 1 0 1 1 0-2H11v-2.1A5 5 0 0 1 7 7V3Z" />
+      <path
+        d="M7 4H4.5A2.5 2.5 0 0 0 7 8.3M17 4h2.5A2.5 2.5 0 0 1 17 8.3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+      <rect x="9" y="17" width="6" height="2" rx="1" />
+    </svg>
+  );
+}
+
+function IconFootprints() {
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <ellipse cx="7" cy="7" rx="4" ry="5.4" transform="rotate(-14 7 7)" />
+      <ellipse cx="16.5" cy="16" rx="4" ry="5.4" transform="rotate(12 16.5 16)" />
+    </svg>
+  );
+}
+
+function IconFlame() {
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 3 Q18 10 15 15 Q19 16 17 20 Q12 23 7 20 Q5 16 9 15 Q6 10 12 3 Z" />
+    </svg>
+  );
+}
+
+function IconCalendarDays() {
+  return (
+    <svg
+      width={16}
+      height={16}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="3.5" y="4.5" width="17" height="16" rx="3" />
+      <path d="M3.5 9.5h17M8 3v3M16 3v3" />
+      <circle cx="8" cy="14" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="14" r="1" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="14" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function IconWrench() {
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M14.7 6.3a4 4 0 0 0-5.4 4.9L3 17.5 5.5 20l6.3-6.3a4 4 0 0 0 4.9-5.4l-2.6 2.6-2-2 2.6-2.6Z" />
+    </svg>
+  );
+}
+
+function NavLabel({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+      {icon}
+      {children}
+    </span>
+  );
+}
 
 const navLinkStyle = {
   color: colors.brown,
@@ -27,13 +100,33 @@ const mobileNavLinkStyle = {
   boxSizing: "border-box" as const,
 };
 
-const NAV_ITEMS = [
+const NAV_ITEMS: { to: string; label: ReactNode }[] = [
   { to: "/map", label: "지도" },
   { to: "/report", label: "놀이터 제보" },
-  { to: "/rankings/reporters", label: "🏆 제보왕" },
-  { to: "/rankings/visitors", label: "👣 왔다감왕" },
-  { to: "/rankings/playgrounds", label: "🔥 인기 놀이터" },
-  { to: "/calendar", label: "🗓 놀이터린더" },
+  {
+    to: "/rankings/reporters",
+    label: (
+      <NavLabel icon={<IconTrophy />}>제보왕</NavLabel>
+    ),
+  },
+  {
+    to: "/rankings/visitors",
+    label: (
+      <NavLabel icon={<IconFootprints />}>왔다감왕</NavLabel>
+    ),
+  },
+  {
+    to: "/rankings/playgrounds",
+    label: (
+      <NavLabel icon={<IconFlame />}>인기 놀이터</NavLabel>
+    ),
+  },
+  {
+    to: "/calendar",
+    label: (
+      <NavLabel icon={<IconCalendarDays />}>놀이터린더</NavLabel>
+    ),
+  },
 ];
 
 export const NAVBAR_HEIGHT = 64;
@@ -113,7 +206,7 @@ export function NavBar() {
                 to="/admin"
                 style={isActive("/admin") ? { ...navLinkStyle, ...navLinkActiveStyle } : navLinkStyle}
               >
-                🛠 관리자
+                <NavLabel icon={<IconWrench />}>관리자</NavLabel>
               </Link>
             )}
             <span style={{ color: colors.textMuted, fontSize: 14 }}>{user.nickname}님</span>
@@ -213,7 +306,7 @@ export function NavBar() {
                     : mobileNavLinkStyle
                 }
               >
-                🛠 관리자
+                <NavLabel icon={<IconWrench />}>관리자</NavLabel>
               </Link>
             )}
             <span style={{ color: colors.textMuted, fontSize: 14, padding: "8px 6px" }}>
