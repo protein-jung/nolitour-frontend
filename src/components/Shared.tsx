@@ -66,6 +66,76 @@ export function IconWrench({ size = 16 }: { size?: number }) {
   );
 }
 
+export function IconPin({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z" />
+      <circle cx="12" cy="10" r="2.4" />
+    </svg>
+  );
+}
+
+export function IconChatBubble({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinejoin="round"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3v-3H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
+    </svg>
+  );
+}
+
+export function IconGrid({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <rect x="2" y="2" width="6" height="6" rx="1.2" />
+      <rect x="9" y="2" width="6" height="6" rx="1.2" />
+      <rect x="16" y="2" width="6" height="6" rx="1.2" />
+      <rect x="2" y="9" width="6" height="6" rx="1.2" />
+      <rect x="9" y="9" width="6" height="6" rx="1.2" />
+      <rect x="16" y="9" width="6" height="6" rx="1.2" />
+      <rect x="2" y="16" width="6" height="6" rx="1.2" />
+      <rect x="9" y="16" width="6" height="6" rx="1.2" />
+      <rect x="16" y="16" width="6" height="6" rx="1.2" />
+    </svg>
+  );
+}
+
+export function IconCards({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      aria-hidden
+    >
+      <rect x="4" y="3" width="16" height="10" rx="2" />
+      <rect x="4" y="15" width="16" height="6" rx="2" />
+    </svg>
+  );
+}
+
 export function LoginGateCard({ message }: { message: string }) {
   return (
     <div style={{ background: colors.cream, flex: 1, display: "flex" }}>

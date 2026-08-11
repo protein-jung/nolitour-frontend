@@ -12,8 +12,8 @@ import {
 import type { CommentReply, FeedItem } from "../types/playground";
 import type { PublicUserProfile } from "../types/user";
 import { AGE_GROUP_LABEL, RISK_TAG_LABEL } from "../types/playground";
-import { colors, primaryButtonStyle, radius, shadow } from "../styles/theme";
-import { Tag, StarDisplay, AvatarCircle } from "../components/Shared";
+import { colors, fonts, primaryButtonStyle, radius, shadow } from "../styles/theme";
+import { Tag, StarDisplay, AvatarCircle, IconCards, IconGrid, IconChatBubble, IconPin } from "../components/Shared";
 import { FeedMapToggle } from "../components/FeedMapToggle";
 import { useAuth } from "../context/AuthContext";
 import { formatRelativeTime } from "../lib/time";
@@ -23,13 +23,16 @@ const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$
 
 function viewToggleStyle(active: boolean): CSSProperties {
   return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
     border: `2px solid ${active ? colors.green : colors.creamDeep}`,
     background: active ? colors.green : "#fff",
     color: active ? "#fff" : colors.brown,
     borderRadius: radius.pill,
     padding: "6px 14px",
     fontSize: 13,
-    fontFamily: "'Jua', sans-serif",
+    fontFamily: fonts.ui,
     cursor: "pointer",
   };
 }
@@ -163,10 +166,10 @@ export function FeedPage() {
 
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 14 }}>
               <button type="button" onClick={() => setViewMode("card")} style={viewToggleStyle(viewMode === "card")}>
-                🗂 카드형
+                <IconCards size={14} /> 카드형
               </button>
               <button type="button" onClick={() => setViewMode("grid")} style={viewToggleStyle(viewMode === "grid")}>
-                ▦ 그리드형
+                <IconGrid size={14} /> 그리드형
               </button>
             </div>
           </div>
@@ -417,7 +420,7 @@ function FeedCard({ item }: { item: FeedItem }) {
               background: "transparent",
               padding: 0,
               cursor: "pointer",
-              fontFamily: "'Jua', sans-serif",
+              fontFamily: fonts.ui,
               fontSize: 13,
               color: likedByMe ? colors.pink : colors.textMuted,
             }}
@@ -435,24 +438,27 @@ function FeedCard({ item }: { item: FeedItem }) {
               background: "transparent",
               padding: 0,
               cursor: "pointer",
-              fontFamily: "'Jua', sans-serif",
+              fontFamily: fonts.ui,
               fontSize: 13,
               color: colors.textMuted,
             }}
           >
-            💬 댓글 {replyCount}
+            <IconChatBubble size={14} /> 댓글 {replyCount}
           </button>
           <Link
             to={`/map?playground=${item.playground_id}`}
             style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
               marginLeft: "auto",
               fontSize: 13,
               color: colors.greenDark,
-              fontFamily: "'Jua', sans-serif",
+              fontFamily: fonts.ui,
               textDecoration: "none",
             }}
           >
-            🗺 지도에서 보기
+            <IconPin size={14} /> 지도에서 보기
           </Link>
         </div>
 

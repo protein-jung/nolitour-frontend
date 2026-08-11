@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactElement, SVGProps } from "react";
 import { Link } from "react-router-dom";
 import { colors, fonts, primaryButtonStyle, radius, secondaryButtonStyle, shadow } from "../styles/theme";
+import { IconPin } from "../components/Shared";
 
 function iconProps(): SVGProps<SVGSVGElement> {
   return {
@@ -13,15 +14,6 @@ function iconProps(): SVGProps<SVGSVGElement> {
     strokeLinecap: "round",
     strokeLinejoin: "round",
   };
-}
-
-function IconPin() {
-  return (
-    <svg {...iconProps()}>
-      <path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z" />
-      <circle cx="12" cy="10" r="2.4" />
-    </svg>
-  );
 }
 
 function IconRoute() {
@@ -55,7 +47,7 @@ function IconAge() {
 }
 
 const FEATURES: { icon: () => ReactElement; color: string; title: string; desc: string }[] = [
-  { icon: IconPin, color: colors.green, title: "이름·유형·주소", desc: "정확한 위치와 유형을 한 번에 확인해요" },
+  { icon: () => <IconPin size={26} />, color: colors.green, title: "이름·유형·주소", desc: "정확한 위치와 유형을 한 번에 확인해요" },
   { icon: IconRoute, color: colors.blue, title: "찾아가는 법", desc: "아파트 단지 안에 있으면 동선까지 안내해요" },
   { icon: IconClock, color: colors.yellow, title: "영업시간·휴무일", desc: "헛걸음하지 않게 미리 알려드려요" },
   { icon: IconAge, color: colors.pink, title: "적합 연령", desc: "우리 아이 나이에 맞는 곳을 골라요" },
