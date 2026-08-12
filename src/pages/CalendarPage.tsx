@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { fetchMyReviews, fetchMyVisits } from "../api/playgrounds";
 import type { MyReview, MyVisit } from "../types/playground";
-import { cardStyle, colors, fonts, radius } from "../styles/theme";
-import { IconCalendarDays, LoginGateCard } from "../components/Shared";
+import { cardStyle, colors, fonts, primaryButtonStyle, radius } from "../styles/theme";
+import { IconCalendarDays } from "../components/Shared";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -13,6 +13,102 @@ function dateKey(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+function CalendarPreview() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const monthIndex = now.getMonth();
+  const firstDay = new Date(year, monthIndex, 1);
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const leadingBlanks = firstDay.getDay();
+  const todayKey = dateKey(now);
+  const sampleMarks = new Map<number, string>([
+    [3, "👣"],
+    [9, "⭐"],
+    [now.getDate(), "👣⭐"],
+  ]);
+
+  const cells: (Date | null)[] = [
+    ...Array.from({ length: leadingBlanks }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => new Date(year, monthIndex, i + 1)),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  return (
+    <>
+      <div style={{ ...cardStyle(), padding: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <span style={monthNavButtonStyle}>◀</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <h2 style={{ margin: 0, fontSize: 19 }}>
+              {year}년 {monthIndex + 1}월
+            </h2>
+            <span style={{ ...monthNavButtonStyle, fontSize: 12, padding: "4px 10px" }}>오늘</span>
+          </div>
+          <span style={monthNavButtonStyle}>▶</span>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+          {WEEKDAY_LABELS.map((label) => (
+            <div key={label} style={{ textAlign: "center", fontSize: 12, color: colors.textMuted, padding: "4px 0" }}>
+              {label}
+            </div>
+          ))}
+          {cells.map((d, i) => {
+            if (!d) return <div key={i} />;
+            const key = dateKey(d);
+            const isToday = key === todayKey;
+            return (
+              <div
+                key={key}
+                style={{
+                  aspectRatio: "1",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 2,
+                  borderRadius: radius.sm,
+                  border: isToday ? `2px solid ${colors.creamDeep}` : "2px solid transparent",
+                  padding: 2,
+                }}
+              >
+                <span style={{ fontSize: 13, color: isToday ? colors.greenDark : colors.text }}>{d.getDate()}</span>
+                <span style={{ fontSize: 10, minHeight: 12 }}>{sampleMarks.get(d.getDate()) ?? ""}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ marginTop: 14, fontSize: 12, color: colors.textMuted, display: "flex", gap: 16 }}>
+          <span>👣 다녀온 놀이터</span>
+          <span>⭐ 후기 남긴 놀이터</span>
+        </div>
+      </div>
+
+      <div style={{ ...cardStyle(), padding: 20, marginTop: 16 }}>
+        <h3 style={{ marginTop: 0 }}>
+          {now.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" })}
+        </h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ ...cardStyle(), padding: 12, display: "flex", alignItems: "center", gap: 10 }}>
+            <span>👣</span>
+            <span style={{ fontWeight: 700 }}>새싹어린이공원</span>
+            <span style={{ marginLeft: "auto", fontSize: 12, color: colors.textMuted }}>다녀옴</span>
+          </div>
+          <div style={{ ...cardStyle(), padding: 12, display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span>⭐</span>
+              <span style={{ fontWeight: 700 }}>햇살놀이터</span>
+              <span style={{ marginLeft: "auto", fontSize: 12, color: colors.yellow }}>{"★★★★☆"}</span>
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: colors.textMuted }}>그늘이 넉넉해서 여름에도 좋아요.</p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
 interface DayEntries {
@@ -57,7 +153,49 @@ export function CalendarPage() {
   }, [visits, reviews]);
 
   if (!user) {
-    return <LoginGateCard message="놀이터린더는 로그인 후 이용할 수 있습니다." />;
+    return (
+      <div style={{ background: colors.cream, flex: 1, position: "relative", overflow: "hidden" }}>
+        <div
+          aria-hidden
+          style={{
+            maxWidth: 720,
+            margin: "0 auto",
+            padding: "40px 24px 80px",
+            filter: "blur(5px)",
+            opacity: 0.65,
+            pointerEvents: "none",
+            userSelect: "none",
+          }}
+        >
+          <h1 style={{ display: "flex", alignItems: "center", gap: 10, color: colors.green }}>
+            <IconCalendarDays size={28} />
+            <span style={{ color: colors.brown }}>놀이터린더</span>
+          </h1>
+          <p style={{ color: colors.textMuted, marginBottom: 24 }}>
+            다녀왔거나 후기를 남긴 놀이터를 달력으로 확인해보세요.
+          </p>
+          <CalendarPreview />
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <div style={{ ...cardStyle(), maxWidth: 380, padding: 32, textAlign: "center" }}>
+            <p style={{ marginBottom: 20 }}>놀이터린더는 로그인 후 이용할 수 있습니다.</p>
+            <Link to="/login" style={primaryButtonStyle()}>
+              로그인하러 가기
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const year = month.getFullYear();
