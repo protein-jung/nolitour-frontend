@@ -350,6 +350,7 @@ export interface MyVisit {
   id: string;
   playground_id: string;
   playground_name: string;
+  playground_image_url: string | null;
   created_at: string;
 }
 

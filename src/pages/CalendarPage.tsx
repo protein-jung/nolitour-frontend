@@ -289,6 +289,7 @@ export function CalendarPage() {
                   const dayEntries = entriesByDate.get(key);
                   const hasVisit = !!dayEntries?.visits.length;
                   const hasReview = !!dayEntries?.reviews.length;
+                  const visitStampUrl = dayEntries?.visits.find((v) => v.playground_image_url)?.playground_image_url;
                   const isSelected = key === selectedKey;
                   const isToday = key === todayKey;
                   return (
@@ -318,8 +319,23 @@ export function CalendarPage() {
                       <span style={{ fontSize: 13, color: isToday ? colors.greenDark : colors.text }}>
                         {d.getDate()}
                       </span>
-                      <span style={{ fontSize: 10, minHeight: 12 }}>
-                        {hasVisit ? "👣" : ""}
+                      <span style={{ fontSize: 10, minHeight: 12, display: "flex", alignItems: "center", gap: 2 }}>
+                        {hasVisit &&
+                          (visitStampUrl ? (
+                            <img
+                              src={visitStampUrl}
+                              alt="다녀온 놀이터"
+                              style={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                                border: `1px solid ${colors.green}`,
+                              }}
+                            />
+                          ) : (
+                            "👣"
+                          ))}
                         {hasReview ? "⭐" : ""}
                       </span>
                     </button>
