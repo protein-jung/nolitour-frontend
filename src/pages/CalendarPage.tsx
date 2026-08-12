@@ -8,6 +8,8 @@ import { IconCalendarDays } from "../components/Shared";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
+const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
+
 function dateKey(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -323,7 +325,7 @@ export function CalendarPage() {
                         {hasVisit &&
                           (visitStampUrl ? (
                             <img
-                              src={visitStampUrl}
+                              src={`${apiBase}${visitStampUrl}`}
                               alt="다녀온 놀이터"
                               style={{
                                 width: 14,
