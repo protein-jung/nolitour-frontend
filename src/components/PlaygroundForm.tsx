@@ -8,6 +8,7 @@ import { extractApiErrorMessage } from "../lib/apiError";
 import type { AddressSuggestion } from "../types/address";
 import {
   ACCESS_LEVEL_LABEL,
+  ADMISSION_FEE_TYPE_LABEL,
   AGE_GROUP_LABEL,
   CONDITION_STATUS_LABEL,
   EQUIPMENT_LABEL,
@@ -28,6 +29,7 @@ import {
   SURFACE_TYPE_LABEL,
   WHEELED_ACCESS_LABEL,
   type AccessLevel,
+  type AdmissionFeeType,
   type AgeGroup,
   type ConditionStatus,
   type EquipmentType,
@@ -53,6 +55,7 @@ import {
 import { cardStyle, colors, inputStyle, primaryButtonStyle, radius, secondaryButtonStyle, shadow } from "../styles/theme";
 import { StarPicker } from "./Shared";
 
+const ADMISSION_FEE_TYPES = Object.keys(ADMISSION_FEE_TYPE_LABEL) as AdmissionFeeType[];
 const PLAYGROUND_TYPES = Object.keys(PLAYGROUND_TYPE_LABEL) as PlaygroundType[];
 const AGE_GROUPS = Object.keys(AGE_GROUP_LABEL) as AgeGroup[];
 const SURFACE_TYPES = Object.keys(SURFACE_TYPE_LABEL) as SurfaceType[];
@@ -115,6 +118,12 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
   const [operatingHours, setOperatingHours] = useState(initial?.operating_hours ?? "");
   const [closedDays, setClosedDays] = useState(initial?.closed_days ?? "");
   const [phone, setPhone] = useState(initial?.phone ?? "");
+  const [admissionFeeType, setAdmissionFeeType] = useState<AdmissionFeeType | "">(
+    initial?.admission_fee_type ?? "",
+  );
+  const [admissionFee, setAdmissionFee] = useState(
+    initial?.admission_fee != null ? String(initial.admission_fee) : "",
+  );
   const [surfaceTypes, setSurfaceTypes] = useState<SurfaceType[]>(initial?.surface_types ?? []);
   const [shadeLevel, setShadeLevel] = useState<ShadeLevel | "">(initial?.shade_level ?? "");
   const [restroom, setRestroom] = useState<RestroomType | "">(initial?.restroom ?? "");
@@ -256,6 +265,8 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
           operating_hours: operatingHours || null,
           closed_days: closedDays || null,
           phone: phone || null,
+          admission_fee_type: admissionFeeType || null,
+          admission_fee: admissionFeeType === "paid" && admissionFee ? Number(admissionFee) : null,
           surface_types: surfaceTypes.length ? surfaceTypes : null,
           shade_level: shadeLevel || null,
           restroom: restroom || null,
@@ -446,6 +457,36 @@ export function PlaygroundForm({ initial, submitLabel, submittingLabel, onSubmit
         전화번호 (선택)
         <input style={inputStyle()} value={phone} onChange={(e) => setPhone(e.target.value)} />
       </label>
+
+      <label style={labelStyle}>
+        이용료 (선택)
+        <select
+          style={inputStyle()}
+          value={admissionFeeType}
+          onChange={(e) => setAdmissionFeeType(e.target.value as AdmissionFeeType)}
+        >
+          <option value="">선택 안함</option>
+          {ADMISSION_FEE_TYPES.map((f) => (
+            <option key={f} value={f}>
+              {ADMISSION_FEE_TYPE_LABEL[f]}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {admissionFeeType === "paid" && (
+        <label style={labelStyle}>
+          이용료 금액 (원)
+          <input
+            style={inputStyle()}
+            type="number"
+            min={0}
+            value={admissionFee}
+            onChange={(e) => setAdmissionFee(e.target.value)}
+            placeholder="예: 5000"
+          />
+        </label>
+      )}
 
       <fieldset style={{ border: `2px solid ${colors.creamDeep}`, borderRadius: radius.md, padding: 14 }}>
         <legend style={{ padding: "0 6px", color: colors.brown, fontWeight: 600 }}>안전 정보 (선택)</legend>

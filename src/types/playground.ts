@@ -76,6 +76,13 @@ export const PARKING_LABEL: Record<ParkingType, string> = {
   paid: "유료",
 };
 
+export type AdmissionFeeType = "free" | "paid";
+
+export const ADMISSION_FEE_TYPE_LABEL: Record<AdmissionFeeType, string> = {
+  free: "무료",
+  paid: "유료",
+};
+
 export type FenceType = "full" | "partial" | "none";
 
 export const FENCE_LABEL: Record<FenceType, string> = {
@@ -266,6 +273,8 @@ export interface Playground {
   operating_hours: string | null;
   closed_days: string | null;
   phone: string | null;
+  admission_fee_type: AdmissionFeeType | null;
+  admission_fee: number | null;
   surface_types: SurfaceType[] | null;
   shade_level: ShadeLevel | null;
   restroom: RestroomType | null;

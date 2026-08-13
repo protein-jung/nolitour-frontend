@@ -29,6 +29,11 @@ export interface PlaygroundFilters {
   hasShade?: boolean;
   hasParking?: boolean;
   hasRestroom?: boolean;
+  isFree?: boolean;
+  hasCctv?: boolean;
+  hasFence?: boolean;
+  strollerFriendly?: boolean;
+  petFriendly?: boolean;
   equipment?: EquipmentType[];
   /** "popular"이면 좋아요·저장·조회수·평균 별점을 가중합한 인기 점수순으로 정렬 */
   sort?: "popular";
@@ -51,6 +56,11 @@ export async function fetchPlaygrounds(
       ...(filters?.hasShade && { has_shade: true }),
       ...(filters?.hasParking && { has_parking: true }),
       ...(filters?.hasRestroom && { has_restroom: true }),
+      ...(filters?.isFree && { is_free: true }),
+      ...(filters?.hasCctv && { has_cctv: true }),
+      ...(filters?.hasFence && { has_fence: true }),
+      ...(filters?.strollerFriendly && { stroller_friendly: true }),
+      ...(filters?.petFriendly && { pet_friendly: true }),
       ...(filters?.equipment?.length && { equipment: filters.equipment }),
       ...(filters?.sort && { sort: filters.sort }),
       ...(filters?.limit && { limit: filters.limit }),

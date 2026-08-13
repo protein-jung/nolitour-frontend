@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { fetchPlayground, fetchPlaygroundEdits } from "../api/playgrounds";
 import {
   ACCESS_LEVEL_LABEL,
+  ADMISSION_FEE_TYPE_LABEL,
   AGE_GROUP_LABEL,
   CONDITION_STATUS_LABEL,
   EQUIPMENT_LABEL,
@@ -38,6 +39,8 @@ const FIELD_LABEL: Record<string, string> = {
   operating_hours: "영업시간",
   closed_days: "휴무일",
   phone: "전화번호",
+  admission_fee_type: "이용료",
+  admission_fee: "이용료 금액",
   surface_types: "바닥 재질",
   shade_level: "그늘",
   restroom: "화장실",
@@ -66,6 +69,7 @@ const FIELD_LABEL: Record<string, string> = {
 
 const ENUM_LABEL_MAPS: Record<string, Record<string, string>> = {
   type: PLAYGROUND_TYPE_LABEL,
+  admission_fee_type: ADMISSION_FEE_TYPE_LABEL,
   age_groups: AGE_GROUP_LABEL,
   surface_types: SURFACE_TYPE_LABEL,
   shade_level: SHADE_LEVEL_LABEL,

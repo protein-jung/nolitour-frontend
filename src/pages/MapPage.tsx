@@ -21,6 +21,7 @@ import { NAVBAR_HEIGHT } from "../components/NavBar";
 import { colors, fonts, primaryButtonStyle, radius, shadow } from "../styles/theme";
 import {
   ACCESS_LEVEL_LABEL,
+  ADMISSION_FEE_TYPE_LABEL,
   AGE_GROUP_LABEL,
   CONDITION_STATUS_LABEL,
   EQUIPMENT_LABEL,
@@ -145,6 +146,11 @@ export function MapPage() {
   const [filterRestroom, setFilterRestroom] = useState(false);
   const [filterSandPlay, setFilterSandPlay] = useState(false);
   const [filterWaterPlay, setFilterWaterPlay] = useState(false);
+  const [filterFree, setFilterFree] = useState(false);
+  const [filterCctv, setFilterCctv] = useState(false);
+  const [filterFence, setFilterFence] = useState(false);
+  const [filterStroller, setFilterStroller] = useState(false);
+  const [filterPet, setFilterPet] = useState(false);
   const [sortPopular, setSortPopular] = useState(false);
 
   useEffect(() => {
@@ -157,12 +163,30 @@ export function MapPage() {
       hasShade: filterShade,
       hasParking: filterParking,
       hasRestroom: filterRestroom,
+      isFree: filterFree,
+      hasCctv: filterCctv,
+      hasFence: filterFence,
+      strollerFriendly: filterStroller,
+      petFriendly: filterPet,
       equipment,
       ...(sortPopular && { sort: "popular", limit: 50 }),
     })
       .then(setPlaygrounds)
       .catch(() => setError("놀이터 목록을 불러오지 못했습니다."));
-  }, [filterAgeGroups, filterShade, filterParking, filterRestroom, filterSandPlay, filterWaterPlay, sortPopular]);
+  }, [
+    filterAgeGroups,
+    filterShade,
+    filterParking,
+    filterRestroom,
+    filterSandPlay,
+    filterWaterPlay,
+    filterFree,
+    filterCctv,
+    filterFence,
+    filterStroller,
+    filterPet,
+    sortPopular,
+  ]);
 
   function toggleFilterAgeGroup(ag: AgeGroup) {
     setFilterAgeGroups((prev) => (prev.includes(ag) ? prev.filter((v) => v !== ag) : [...prev, ag]));
@@ -170,7 +194,18 @@ export function MapPage() {
 
   const activeFilterCount =
     filterAgeGroups.length +
-    [filterShade, filterParking, filterRestroom, filterSandPlay, filterWaterPlay].filter(Boolean).length;
+    [
+      filterShade,
+      filterParking,
+      filterRestroom,
+      filterSandPlay,
+      filterWaterPlay,
+      filterFree,
+      filterCctv,
+      filterFence,
+      filterStroller,
+      filterPet,
+    ].filter(Boolean).length;
 
   const handleSelect = useCallback((playground: Playground) => {
     fetchPlayground(playground.id).then(setSelected);
@@ -402,6 +437,10 @@ export function MapPage() {
                   </div>
                 </div>
                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                  <input type="checkbox" checked={filterFree} onChange={(e) => setFilterFree(e.target.checked)} />
+                  무료 이용
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
                   <input type="checkbox" checked={filterShade} onChange={(e) => setFilterShade(e.target.checked)} />
                   그늘 있음
                 </label>
@@ -420,6 +459,22 @@ export function MapPage() {
                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
                   <input type="checkbox" checked={filterWaterPlay} onChange={(e) => setFilterWaterPlay(e.target.checked)} />
                   물놀이 가능
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                  <input type="checkbox" checked={filterCctv} onChange={(e) => setFilterCctv(e.target.checked)} />
+                  CCTV 있음
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                  <input type="checkbox" checked={filterFence} onChange={(e) => setFilterFence(e.target.checked)} />
+                  안전펜스 있음
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                  <input type="checkbox" checked={filterStroller} onChange={(e) => setFilterStroller(e.target.checked)} />
+                  유모차 이용 편함
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                  <input type="checkbox" checked={filterPet} onChange={(e) => setFilterPet(e.target.checked)} />
+                  반려동물 동반 가능
                 </label>
               </div>
             )}
@@ -543,6 +598,13 @@ export function MapPage() {
 
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
             {selected.type && <Tag color={colors.green}>{PLAYGROUND_TYPE_LABEL[selected.type]}</Tag>}
+            {selected.admission_fee_type && (
+              <Tag color={selected.admission_fee_type === "free" ? colors.green : colors.yellow}>
+                {selected.admission_fee_type === "paid" && selected.admission_fee
+                  ? `유료 ${selected.admission_fee.toLocaleString()}원`
+                  : ADMISSION_FEE_TYPE_LABEL[selected.admission_fee_type]}
+              </Tag>
+            )}
             {selected.age_groups?.map((ag) => (
               <Tag key={ag} color={colors.blue}>
                 {AGE_GROUP_LABEL[ag]}

@@ -1,5 +1,5 @@
 import type { Playground } from "../types/playground";
-import { AGE_GROUP_LABEL, PLAYGROUND_TYPE_LABEL } from "../types/playground";
+import { ADMISSION_FEE_TYPE_LABEL, AGE_GROUP_LABEL, PLAYGROUND_TYPE_LABEL } from "../types/playground";
 import { colors, radius, shadow } from "../styles/theme";
 import { Tag, VisitStamp } from "./Shared";
 import { formatDistance } from "../lib/geo";
@@ -57,6 +57,13 @@ export function PlaygroundListView({ playgrounds, onSelect, nickname }: Playgrou
               <p style={{ margin: "4px 0 0", fontSize: 13, color: colors.textMuted }}>{p.address}</p>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
                 {p.type && <Tag color={colors.green}>{PLAYGROUND_TYPE_LABEL[p.type]}</Tag>}
+                {p.admission_fee_type && (
+                  <Tag color={p.admission_fee_type === "free" ? colors.green : colors.yellow}>
+                    {p.admission_fee_type === "paid" && p.admission_fee
+                      ? `유료 ${p.admission_fee.toLocaleString()}원`
+                      : ADMISSION_FEE_TYPE_LABEL[p.admission_fee_type]}
+                  </Tag>
+                )}
                 {p.age_groups?.slice(0, 2).map((ag) => (
                   <Tag key={ag} color={colors.blue}>
                     {AGE_GROUP_LABEL[ag]}
