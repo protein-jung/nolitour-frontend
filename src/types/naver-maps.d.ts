@@ -21,6 +21,8 @@ declare global {
       constructor(el: HTMLElement | string, options: MapOptions);
       setCenter(latlng: LatLng): void;
       getBounds(): unknown;
+      getZoom(): number;
+      setZoom(zoom: number): void;
     }
 
     interface MapOptions {
@@ -74,6 +76,7 @@ declare global {
         handler: (...args: unknown[]) => void,
       ): unknown;
       function removeListener(listener: unknown): void;
+      function trigger(target: unknown, eventName: string): void;
     }
 
     // submodules=geocoder 로딩 시에만 사용 가능

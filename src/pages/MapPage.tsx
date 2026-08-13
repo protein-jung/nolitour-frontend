@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { NaverMap, type LatLngLiteral } from "../components/NaverMap";
+import type { LatLngLiteral } from "../components/NaverMap";
+import { PersistentMapSlot } from "../context/PersistentMapContext";
 import { distanceMeters, formatDistance } from "../lib/geo";
 import {
   checkInPlayground,
@@ -452,7 +453,7 @@ export function MapPage() {
               </div>
             )}
             {mapReady && (
-              <NaverMap
+              <PersistentMapSlot
                 playgrounds={playgroundsWithDistance}
                 onSelect={handleSelect}
                 onInteractionBlocked={user ? undefined : handleInteractionBlocked}

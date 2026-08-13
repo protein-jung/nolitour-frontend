@@ -207,14 +207,31 @@ export const NaverMap = forwardRef<NaverMapHandle, NaverMapProps>(function Naver
     },
   }));
 
+  // 컨테이너가 화면에 보이지 않는 곳(크기 0)에 있는 동안에는 생성을 미루고, 실제로 자리를 잡아
+  // 크기가 생기는 시점(또는 리페어런팅으로 지도를 재사용하며 레이아웃이 바뀌는 시점)에 만들거나 다시 그린다.
   useEffect(() => {
-    if (!loaded || !containerRef.current || mapRef.current) return;
+    if (!loaded || !containerRef.current) return;
+    const el = containerRef.current;
 
-    mapRef.current = new window.naver.maps.Map(containerRef.current, {
-      center: new window.naver.maps.LatLng(initialCenter.lat, initialCenter.lng),
-      zoom: initialZoom,
-      minZoom: 6,
+    const createIfSized = () => {
+      if (mapRef.current || el.offsetWidth === 0 || el.offsetHeight === 0) return;
+      mapRef.current = new window.naver.maps.Map(el, {
+        center: new window.naver.maps.LatLng(initialCenter.lat, initialCenter.lng),
+        zoom: initialZoom,
+        minZoom: 6,
+      });
+    };
+    createIfSized();
+
+    const observer = new ResizeObserver(() => {
+      if (mapRef.current) {
+        window.naver.maps.Event.trigger(mapRef.current, "resize");
+      } else {
+        createIfSized();
+      }
     });
+    observer.observe(el);
+    return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded]);
 
