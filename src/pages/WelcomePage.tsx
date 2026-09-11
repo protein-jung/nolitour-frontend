@@ -1,8 +1,10 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { colors, fonts, primaryButtonStyle, radius, secondaryButtonStyle, shadow } from "../styles/theme";
+import { colors, fonts, inputStyle, primaryButtonStyle, radius, secondaryButtonStyle, shadow } from "../styles/theme";
 import { IconChatBubble, IconFlame, IconPin } from "../components/Shared";
 import logo from "../assets/nolitour_logo.png";
+
+type Media = { kind: "image"; src: string; alt: string } | { kind: "report-mockup" };
 
 type Feature = {
   icon: () => ReactElement;
@@ -10,7 +12,7 @@ type Feature = {
   eyebrow: string;
   title: string;
   desc: string;
-  media: { src: string; alt: string };
+  media: Media;
   cta: { label: string; to: string };
 };
 
@@ -22,7 +24,7 @@ const FEATURES: Feature[] = [
     title: "동네 놀이터, 지도에서 한눈에",
     desc:
       "현재 위치 기준으로 가까운 놀이터를 지도와 리스트로 보여줘요. 연령대, 그늘, 주차, 화장실 같은 조건으로 필터링하고, 마음에 드는 곳을 골라 상세 정보까지 바로 확인할 수 있어요.",
-    media: { src: "/landing/map_search_filter.gif", alt: "지도에서 놀이터를 검색하고 필터를 적용하는 모습" },
+    media: { kind: "image", src: "/landing/map_search_filter.gif", alt: "지도에서 놀이터를 검색하고 필터를 적용하는 모습" },
     cta: { label: "지도에서 찾아보기", to: "/map" },
   },
   {
@@ -32,7 +34,7 @@ const FEATURES: Feature[] = [
     title: "다른 부모들이 많이 찾는 곳",
     desc:
       "좋아요, 저장, 조회수, 별점을 종합한 인기 점수로 놀이터 순위를 매겨요. 우리 동네뿐 아니라 전국에서 지금 가장 인기 있는 놀이터를 랭킹으로 확인해보세요.",
-    media: { src: "/landing/ranking.gif", alt: "인기 놀이터 랭킹 리스트를 살펴보는 모습" },
+    media: { kind: "image", src: "/landing/ranking.gif", alt: "인기 놀이터 랭킹 리스트를 살펴보는 모습" },
     cta: { label: "인기 놀이터 보기", to: "/rankings/playgrounds" },
   },
   {
@@ -42,7 +44,7 @@ const FEATURES: Feature[] = [
     title: "우리 동네 놀이터, 지도를 함께 채워요",
     desc:
       "공공데이터에 없는 아파트 단지 놀이터나 새로 생긴 놀이터를 직접 제보할 수 있어요. 이름, 위치, 시설 정보를 등록하면 다른 이용자들에게도 바로 공유돼요.",
-    media: { src: "/landing/report_placeholder.jpg", alt: "놀이터 제보하기 화면" },
+    media: { kind: "report-mockup" },
     cta: { label: "놀이터 제보하기", to: "/report" },
   },
 ];
@@ -77,6 +79,71 @@ function BrowserFrame({ children }: { children: ReactElement }) {
   );
 }
 
+const AGE_CHIPS = ["영유아", "유아", "어린이", "초등고학년"];
+
+function ReportMockup() {
+  return (
+    <div style={{ padding: "22px 24px", background: "#fff" }}>
+      <div style={{ fontFamily: fonts.ui, fontSize: 15, color: colors.text, marginBottom: 18 }}>놀이터 제보하기</div>
+
+      <div style={{ fontSize: 12.5, color: colors.textMuted, marginBottom: 6 }}>장소 이름</div>
+      <div style={{ ...inputStyle(), marginBottom: 16, color: colors.text }}>새싹 어린이공원</div>
+
+      <div style={{ fontSize: 12.5, color: colors.textMuted, marginBottom: 6 }}>적합 연령대</div>
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+        {AGE_CHIPS.map((label, i) => (
+          <span
+            key={label}
+            style={{
+              padding: "6px 12px",
+              borderRadius: radius.pill,
+              fontSize: 12.5,
+              border: `1.5px solid ${i === 0 ? colors.green : colors.creamDeep}`,
+              background: i === 0 ? colors.green : "#fff",
+              color: i === 0 ? "#fff" : colors.textMuted,
+            }}
+          >
+            {label}
+          </span>
+        ))}
+      </div>
+
+      <div style={{ fontSize: 12.5, color: colors.textMuted, marginBottom: 6 }}>위치</div>
+      <div
+        style={{
+          ...inputStyle(),
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          color: colors.greenDark,
+        }}
+      >
+        <IconPin size={14} /> 서울 강동구 · 현재 위치로 확인됨
+      </div>
+
+      <div
+        style={{
+          borderRadius: radius.md,
+          border: `1.5px dashed ${colors.creamDeep}`,
+          background: colors.cream,
+          padding: "18px",
+          textAlign: "center",
+          fontSize: 12.5,
+          color: colors.textMuted,
+          marginBottom: 18,
+        }}
+      >
+        📷 사진 추가하기
+      </div>
+
+      <div style={{ ...primaryButtonStyle(), width: "100%", textAlign: "center", boxSizing: "border-box" }}>
+        제보하기
+      </div>
+    </div>
+  );
+}
+
 function FeatureSection({ feature, reverse }: { feature: Feature; reverse: boolean }) {
   const Icon = feature.icon;
   return (
@@ -92,12 +159,16 @@ function FeatureSection({ feature, reverse }: { feature: Feature; reverse: boole
     >
       <div style={{ direction: "ltr" }}>
         <BrowserFrame>
-          <img
-            src={feature.media.src}
-            alt={feature.media.alt}
-            style={{ display: "block", width: "100%", height: "auto" }}
-            loading="lazy"
-          />
+          {feature.media.kind === "image" ? (
+            <img
+              src={feature.media.src}
+              alt={feature.media.alt}
+              style={{ display: "block", width: "100%", height: "auto" }}
+              loading="lazy"
+            />
+          ) : (
+            <ReportMockup />
+          )}
         </BrowserFrame>
       </div>
       <div style={{ direction: "ltr" }}>
