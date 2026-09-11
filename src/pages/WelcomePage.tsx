@@ -151,7 +151,7 @@ function FeatureSection({ feature, reverse }: { feature: Feature; reverse: boole
       className="welcome-feature-row"
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 1fr",
+        gridTemplateColumns: "1.5fr 1fr",
         gap: 48,
         alignItems: "center",
         direction: reverse ? "rtl" : "ltr",
@@ -278,7 +278,7 @@ export function WelcomePage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "72px 24px 0" }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "72px 24px 0" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 96 }}>
           {FEATURES.map((f, i) => (
             <FeatureSection key={f.title} feature={f} reverse={i % 2 === 1} />
