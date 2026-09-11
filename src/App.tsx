@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { PersistentMapProvider } from "./context/PersistentMapContext";
 import { NavBar } from "./components/NavBar";
 import { HomePage } from "./pages/HomePage";
+import { WelcomePage } from "./pages/WelcomePage";
 import { FeedPage } from "./pages/FeedPage";
 import { MapPage } from "./pages/MapPage";
 import { ReportPage } from "./pages/ReportPage";
@@ -26,6 +27,7 @@ function App() {
           <NavBar />
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/report" element={<ReportPage />} />

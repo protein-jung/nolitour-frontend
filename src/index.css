@@ -178,6 +178,17 @@ select {
   }
 }
 
+@media (max-width: 760px) {
+  .welcome-feature-row {
+    grid-template-columns: 1fr !important;
+    direction: ltr !important;
+  }
+
+  .welcome-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .navbar-toggle {
   display: none;
 }
